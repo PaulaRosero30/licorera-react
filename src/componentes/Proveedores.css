@@ -1,0 +1,216 @@
+.contenedor {
+    padding: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.contenedor h2 {
+    color: #1a1a2e;
+    margin-bottom: 24px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    border-left: 4px solid #C9A84C;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.stat-card h3 {
+    font-size: 12px;
+    color: #888;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.stat-card p {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.barra-busqueda {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.barra-busqueda input {
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    flex: 1;
+    min-width: 200px;
+}
+
+.barra-busqueda input:focus {
+    border-color: #C9A84C;
+    outline: none;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.btn-gold {
+    background: #C9A84C;
+    color: white;
+}
+
+.btn-gold:hover {
+    background: #b8962e;
+}
+
+.btn-rojo {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-azul {
+    background: #1a1a2e;
+    color: white;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+    background: #1a1a2e;
+    color: white;
+    margin-right: 4px;
+}
+
+.error {
+    color: red;
+    padding: 12px;
+    background: #ffe6e6;
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+
+.tabla {
+    width: 100%;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border-collapse: collapse;
+}
+
+.tabla thead {
+    background: #1a1a2e;
+    color: white;
+}
+
+.tabla th {
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.tabla td {
+    padding: 13px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.tabla tbody tr:hover td {
+    background: #fafafa;
+}
+
+.acciones {
+    display: flex;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.vacio {
+    text-align: center;
+    padding: 40px;
+    color: #aaa;
+}
+
+/* MODAL */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal {
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal h2 {
+    margin-bottom: 20px;
+    color: #1a1a2e;
+}
+
+.modal.confirm-modal {
+    text-align: center;
+    max-width: 360px;
+}
+
+.modal.confirm-modal p {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.campo {
+    margin-bottom: 14px;
+}
+
+.campo label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.campo input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.campo input:focus {
+    border-color: #C9A84C;
+    outline: none;
+}
+
+.modal-botones {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+    justify-content: flex-end;
+}
+
+.modal.confirm-modal .modal-botones {
+    justify-content: center;
+}

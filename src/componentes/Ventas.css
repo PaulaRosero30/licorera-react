@@ -1,0 +1,275 @@
+.ventas-layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 24px;
+    padding: 32px;
+    max-width: 1300px;
+    margin: 0 auto;
+}
+
+.panel-busqueda,
+.panel-cobro {
+    background: white;
+    border-radius: 10px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.panel-busqueda h2,
+.panel-cobro h2 {
+    font-size: 16px;
+    color: #1a1a2e;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 12px;
+}
+
+.buscar-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.buscar-row input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.buscar-row input:focus {
+    border-color: #C9A84C;
+    outline: none;
+}
+
+.buscar-row button {
+    padding: 10px 16px;
+}
+
+.lista-productos {
+    max-height: 280px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+
+.producto-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid #f5f5f5;
+    font-size: 13px;
+}
+
+.producto-item:hover {
+    background: #fafafa;
+}
+
+.producto-item strong {
+    display: block;
+    color: #1a1a2e;
+}
+
+.producto-item p {
+    font-size: 11px;
+    color: #888;
+    margin-top: 2px;
+}
+
+.producto-item .precio {
+    color: #28a745;
+    font-weight: 700;
+    margin: 0 12px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.btn-gold {
+    background: #C9A84C;
+    color: white;
+}
+
+.btn-gold:hover {
+    background: #b8962e;
+}
+
+.btn-sm {
+    padding: 6px 10px;
+    font-size: 12px;
+}
+
+.btn-rojo {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-verde {
+    background: #28a745;
+    color: white;
+}
+
+.vacio {
+    text-align: center;
+    padding: 20px;
+    color: #aaa;
+}
+
+.tabla-carrito {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+.tabla-carrito th {
+    background: #f5f5f5;
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #666;
+}
+
+.tabla-carrito td {
+    padding: 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.input-cantidad {
+    width: 60px;
+    padding: 4px 8px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.total-box {
+    background: #1a1a2e;
+    color: white;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.total-box .fila {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: #aaa;
+}
+
+.total-box .fila.grande {
+    font-size: 22px;
+    font-weight: 700;
+    color: #C9A84C;
+    margin-top: 8px;
+    border-top: 1px solid #333;
+    padding-top: 8px;
+}
+
+.campo {
+    margin-bottom: 12px;
+}
+
+.campo label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.campo input,
+.campo select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.campo input:focus,
+.campo select:focus {
+    border-color: #C9A84C;
+    outline: none;
+}
+
+.cliente-info {
+    font-size: 11px;
+    color: #C9A84C;
+    margin-top: 4px;
+}
+
+.medios-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.medio-btn {
+    padding: 10px;
+    border: 2px solid #ddd;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    text-align: center;
+    font-weight: 500;
+    transition: all 0.15s;
+}
+
+.medio-btn:hover {
+    border-color: #C9A84C;
+}
+
+.medio-btn.seleccionado {
+    border-color: #C9A84C;
+    background: #FFF8E7;
+    color: #1a1a2e;
+    font-weight: 600;
+}
+
+.historial {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.venta-item {
+    padding: 12px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 13px;
+}
+
+.venta-fila {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.venta-fecha {
+    font-size: 11px;
+    color: #888;
+    margin-top: 4px;
+}
+
+@media (max-width: 900px) {
+    .ventas-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .medios-grid {
+        grid-template-columns: 1fr;
+    }
+}

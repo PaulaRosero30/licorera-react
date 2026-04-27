@@ -1,0 +1,253 @@
+.contenedor {
+    padding: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.contenedor h2 {
+    color: #1a1a2e;
+    margin-bottom: 24px;
+}
+
+.barra-nueva-mesa {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.barra-nueva-mesa input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.barra-nueva-mesa input:focus {
+    border-color: #C9A84C;
+    outline: none;
+}
+
+.mesas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+}
+
+.mesa-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mesa-card:hover {
+    border-color: #C9A84C;
+    transform: translateY(-2px);
+}
+
+.mesa-numero {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+}
+
+.mesa-info {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 12px;
+}
+
+.mesa-total {
+    font-size: 18px;
+    font-weight: 700;
+    color: #28a745;
+}
+
+.detalle-mesa-layout {
+    padding: 32px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.personas-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.persona-tab {
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.persona-tab:hover {
+    border-color: #C9A84C;
+}
+
+.persona-tab.activa {
+    background: #C9A84C;
+    color: white;
+    border-color: #C9A84C;
+}
+
+.tabla-detalle {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    margin-bottom: 16px;
+}
+
+.tabla-detalle thead {
+    background: #1a1a2e;
+    color: white;
+}
+
+.tabla-detalle th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.tabla-detalle td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 13px;
+}
+
+.tabla-detalle tbody tr:hover td {
+    background: #fafafa;
+}
+
+.total-persona {
+    background: #1a1a2e;
+    color: white;
+    padding: 16px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.total-persona .monto {
+    font-size: 22px;
+    font-weight: 700;
+    color: #C9A84C;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.btn-gold {
+    background: #C9A84C;
+    color: white;
+}
+
+.btn-gold:hover {
+    background: #b8962e;
+}
+
+.btn-verde {
+    background: #28a745;
+    color: white;
+}
+
+.btn-rojo {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+    background: #1a1a2e;
+    color: white;
+}
+
+.vacio {
+    text-align: center;
+    padding: 40px;
+    color: #aaa;
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal {
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal h2 {
+    margin-bottom: 20px;
+    color: #1a1a2e;
+}
+
+.modal p {
+    margin-bottom: 20px;
+    color: #666;
+}
+
+.campo {
+    margin-bottom: 14px;
+}
+
+.campo label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.campo input,
+.campo select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.campo input:focus,
+.campo select:focus {
+    border-color: #C9A84C;
+    outline: none;
+}
+
+.modal-botones {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+    justify-content: flex-end;
+}

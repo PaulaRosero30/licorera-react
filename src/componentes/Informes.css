@@ -1,0 +1,113 @@
+.contenedor {
+    padding: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.contenedor h2 {
+    color: #1a1a2e;
+    margin-bottom: 24px;
+}
+
+.tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.tab-btn {
+    padding: 10px 16px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.tab-btn:hover {
+    border-color: #C9A84C;
+}
+
+.tab-btn.activo {
+    background: #C9A84C;
+    color: white;
+    border-color: #C9A84C;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    border-left: 4px solid #C9A84C;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.stat-card.positivo {
+    border-left-color: #28a745;
+}
+
+.stat-card h3 {
+    font-size: 12px;
+    color: #888;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.stat-card p {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.stat-card span {
+    font-size: 12px;
+    color: #888;
+    margin-top: 4px;
+    display: block;
+}
+
+.tabla {
+    width: 100%;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border-collapse: collapse;
+}
+
+.tabla thead {
+    background: #1a1a2e;
+    color: white;
+}
+
+.tabla th {
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.tabla td {
+    padding: 13px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.tabla tbody tr:hover td {
+    background: #fafafa;
+}
+
+.vacio {
+    text-align: center;
+    padding: 40px;
+    color: #aaa;
+}
