@@ -13,23 +13,12 @@ export default function Inventario() {
   const [error, setError] = useState('');
 
   const [form, setForm] = useState({
-    codigo_barras: '',
-    nombre: '',
-    categoria: 'Aguardiente',
-    unidad: '',
-    precio_costo: '',
-    precio_venta: '',
-    stock: '',
-    stock_minimo: ''
+    codigo_barras: '', nombre: '', categoria: 'Aguardiente',
+    unidad: '', precio_costo: '', precio_venta: '', stock: '', stock_minimo: ''
   });
 
-  useEffect(() => {
-    cargarProductos();
-  }, []);
-
-  useEffect(() => {
-    filtrar();
-  }, [productos, buscador, categoria]);
+  useEffect(() => { cargarProductos(); }, []);
+  useEffect(() => { filtrar(); }, [productos, buscador, categoria]);
 
   const cargarProductos = async () => {
     try {
@@ -46,42 +35,24 @@ export default function Inventario() {
 
   const filtrar = () => {
     let resultado = productos;
-    
     if (buscador) {
-      resultado = resultado.filter(p => 
+      resultado = resultado.filter(p =>
         p.nombre.toLowerCase().includes(buscador.toLowerCase()) ||
         (p.codigo_barras || '').includes(buscador)
       );
     }
-
-    if (categoria) {
-      resultado = resultado.filter(p => p.categoria === categoria);
-    }
-
+    if (categoria) resultado = resultado.filter(p => p.categoria === categoria);
     setFiltrados(resultado);
   };
 
   const abrirModal = () => {
     setEditandoId(null);
-    setForm({
-      codigo_barras: '',
-      nombre: '',
-      categoria: 'Aguardiente',
-      unidad: '',
-      precio_costo: '',
-      precio_venta: '',
-      stock: '',
-      stock_minimo: ''
-    });
+    setForm({ codigo_barras: '', nombre: '', categoria: 'Aguardiente', unidad: '', precio_costo: '', precio_venta: '', stock: '', stock_minimo: '' });
     setMostrarModal(true);
   };
 
   const guardar = async () => {
-    if (!form.nombre) {
-      alert('El nombre es obligatorio');
-      return;
-    }
-
+    if (!form.nombre) { alert('El nombre es obligatorio'); return; }
     try {
       if (editandoId) {
         await productosAPI.actualizar(editandoId, form);
@@ -101,15 +72,30 @@ export default function Inventario() {
     setMostrarModal(true);
   };
 
+  const inactivar = async (producto) => {
+    if (!window.confirm(`¿Deseas inactivar "${producto.nombre}"?`)) return;
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(`http://localhost:3001/api/productos/${producto.id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      cargarProductos();
+    } catch (err) {
+      alert('Error al inactivar: ' + err.message);
+    }
+  };
+
   const cambiarForm = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
   };
 
+  const stockBajoList = productos.filter(p => p.stock_bajo);
   const stats = {
     total: productos.length,
     valor: productos.reduce((acc, p) => acc + (p.precio_costo * p.stock), 0),
-    stockBajo: productos.filter(p => p.stock <= p.stock_minimo).length
+    stockBajo: stockBajoList.length
   };
 
   if (cargando) return <div className="contenedor"><p>Cargando...</p></div>;
@@ -117,6 +103,17 @@ export default function Inventario() {
   return (
     <div className="contenedor">
       <h2>📦 Inventario de Productos</h2>
+
+      {stockBajoList.length > 0 && (
+        <div className="alerta-stock">
+          <strong>⚠️ Productos con stock bajo:</strong>
+          <ul>
+            {stockBajoList.map(p => (
+              <li key={p.id}>{p.nombre} — Stock actual: <strong>{p.stock}</strong> (mínimo: {p.stock_minimo})</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="stats-grid">
         <div className="stat-card">
@@ -134,12 +131,7 @@ export default function Inventario() {
       </div>
 
       <div className="barra-busqueda">
-        <input
-          type="text"
-          placeholder="🔍 Buscar producto..."
-          value={buscador}
-          onChange={(e) => setBuscador(e.target.value)}
-        />
+        <input type="text" placeholder="🔍 Buscar producto..." value={buscador} onChange={(e) => setBuscador(e.target.value)} />
         <select value={categoria} onChange={(e) => setCategoria(e.target.value)}>
           <option value="">Todas las categorías</option>
           <option value="Aguardiente">Aguardiente</option>
@@ -173,7 +165,7 @@ export default function Inventario() {
             <tr><td colSpan="8" className="vacio">No hay productos</td></tr>
           ) : (
             filtrados.map(p => (
-              <tr key={p.id}>
+              <tr key={p.id} className={p.stock_bajo ? 'fila-bajo' : ''}>
                 <td>{p.codigo_barras || '—'}</td>
                 <td><strong>{p.nombre}</strong></td>
                 <td>{p.categoria}</td>
@@ -185,8 +177,9 @@ export default function Inventario() {
                     {p.stock_bajo ? '⚠️ Bajo' : '✅ OK'}
                   </span>
                 </td>
-                <td>
+                <td className="acciones">
                   <button className="btn btn-sm" onClick={() => editar(p)}>Editar</button>
+                  <button className="btn btn-sm btn-rojo" onClick={() => inactivar(p)}>Inactivar</button>
                 </td>
               </tr>
             ))
@@ -198,7 +191,6 @@ export default function Inventario() {
         <div className="modal-overlay">
           <div className="modal">
             <h2>{editandoId ? 'Editar Producto' : 'Agregar Producto'}</h2>
-            
             <div className="campo">
               <label>Nombre *</label>
               <input type="text" name="nombre" value={form.nombre} onChange={cambiarForm} />
@@ -243,7 +235,6 @@ export default function Inventario() {
                 <input type="number" name="stock_minimo" value={form.stock_minimo} onChange={cambiarForm} />
               </div>
             </div>
-
             <div className="modal-botones">
               <button className="btn btn-rojo" onClick={() => setMostrarModal(false)}>Cancelar</button>
               <button className="btn btn-gold" onClick={guardar}>Guardar</button>
