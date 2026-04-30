@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Login from './componentes/Login';
 import Ventas from './componentes/Ventas';
 import Inventario from './componentes/Inventario';
+import Clientes from './componentes/Clientes';
 import logo from './logo-licores.jpeg';
 import './App.css';
 
@@ -52,9 +53,10 @@ function App() {
   if (!usuario) return <Login onLogin={handleLogin} />;
 
   const menuAdmin = [
-    { id: 'ventas', label: '🛒 Ventas' },
-    { id: 'inventario', label: '📦 Inventario' },
-  ];
+  { id: 'ventas', label: '🛒 Ventas' },
+  { id: 'inventario', label: '📦 Inventario' },
+  { id: 'clientes', label: '👥 Clientes' },
+];
 
   const menuEmpleado = [
     { id: 'ventas', label: '🛒 Ventas' },
@@ -100,6 +102,7 @@ function App() {
       <main>
         {modulo === 'ventas' && <Ventas />}
         {modulo === 'inventario' && <Inventario />}
+        {modulo === 'clientes' && <Clientes />}
       </main>
     </div>
   );

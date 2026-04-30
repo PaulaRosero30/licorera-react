@@ -8,26 +8,24 @@ export default function Clientes() {
   const [buscador, setBuscador] = useState('');
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarDetalles, setMostrarDetalles] = useState(false);
+  const [mostrarAbono, setMostrarAbono] = useState(false);
   const [editandoId, setEditandoId] = useState(null);
   const [clienteActual, setClienteActual] = useState(null);
   const [detallesCliente, setDetallesCliente] = useState(null);
+  const [ventaAbonar, setVentaAbonar] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
 
   const [form, setForm] = useState({
-    nombre: '',
-    documento: '',
-    telefono: '',
-    limite_credito: ''
+    nombre: '', documento: '', telefono: '', limite_credito: ''
   });
 
-  useEffect(() => {
-    cargarClientes();
-  }, []);
+  const [formAbono, setFormAbono] = useState({
+    monto: '', medio_pago: 'efectivo', banco: ''
+  });
 
-  useEffect(() => {
-    filtrar();
-  }, [clientes, buscador]);
+  useEffect(() => { cargarClientes(); }, []);
+  useEffect(() => { filtrar(); }, [clientes, buscador]);
 
   const cargarClientes = async () => {
     try {
@@ -44,34 +42,23 @@ export default function Clientes() {
 
   const filtrar = () => {
     let resultado = clientes;
-    
     if (buscador) {
-      resultado = resultado.filter(c => 
+      resultado = resultado.filter(c =>
         c.nombre.toLowerCase().includes(buscador.toLowerCase()) ||
         (c.documento || '').includes(buscador)
       );
     }
-
     setFiltrados(resultado);
   };
 
   const abrirModal = () => {
     setEditandoId(null);
-    setForm({
-      nombre: '',
-      documento: '',
-      telefono: '',
-      limite_credito: ''
-    });
+    setForm({ nombre: '', documento: '', telefono: '', limite_credito: '' });
     setMostrarModal(true);
   };
 
   const guardar = async () => {
-    if (!form.nombre) {
-      alert('El nombre es obligatorio');
-      return;
-    }
-
+    if (!form.nombre) { alert('El nombre es obligatorio'); return; }
     try {
       if (editandoId) {
         await clientesAPI.actualizar(editandoId, form);
@@ -102,21 +89,27 @@ export default function Clientes() {
     }
   };
 
-  const registrarAbono = async (ventaId, totalDeuda) => {
-    const monto = prompt(`Ingresa el monto a abonar (máx: $${Number(totalDeuda).toLocaleString('es-CO')})`);
-    if (!monto || isNaN(monto) || monto <= 0) return alert('Monto inválido');
-    if (Number(monto) > Number(totalDeuda)) return alert('El abono no puede ser mayor a la deuda');
+  const abrirAbono = (venta) => {
+    setVentaAbonar(venta);
+    setFormAbono({ monto: '', medio_pago: 'efectivo', banco: '' });
+    setMostrarAbono(true);
+  };
 
-    const medio = prompt('Medio de pago: (efectivo / transferencia / tarjeta)');
-    if (!medio) return;
-
+  const registrarAbono = async () => {
+    if (!formAbono.monto || isNaN(formAbono.monto) || formAbono.monto <= 0) {
+      alert('Ingresa un monto válido'); return;
+    }
+    if (Number(formAbono.monto) > Number(ventaAbonar.total)) {
+      alert('El abono no puede ser mayor a la deuda'); return;
+    }
     try {
       await clientesAPI.abono(clienteActual.id, {
-        venta_id: ventaId,
-        monto: monto,
-        medio_pago: medio
+        venta_id: ventaAbonar.id,
+        monto: formAbono.monto,
+        medio_pago: formAbono.medio_pago,
+        banco: formAbono.banco || null
       });
-      alert('✅ Abono registrado');
+      setMostrarAbono(false);
       verDetalles(clienteActual);
       cargarClientes();
     } catch (err) {
@@ -189,7 +182,7 @@ export default function Clientes() {
                 <td><strong>{c.nombre}</strong></td>
                 <td>{c.documento || '—'}</td>
                 <td>{c.telefono || '—'}</td>
-                <td style={{ color: c.saldo_deuda > 0 ? '#dc3545' : '#28a745' }}>
+                <td style={{ color: c.saldo_deuda > 0 ? '#e74c3c' : '#2ecc71' }}>
                   <strong>${Number(c.saldo_deuda).toLocaleString('es-CO')}</strong>
                 </td>
                 <td>${Number(c.limite_credito).toLocaleString('es-CO')}</td>
@@ -199,7 +192,7 @@ export default function Clientes() {
                     c.saldo_deuda > 0 ? 'badge-alerta' : 'badge-ok'
                   }`}>
                     {c.saldo_deuda > c.limite_credito ? '⚠️ Límite excedido' :
-                     c.saldo_deuda > 0 ? 'Deuda' : 'Pagado'}
+                     c.saldo_deuda > 0 ? 'Con deuda' : '✅ Al día'}
                   </span>
                 </td>
                 <td className="acciones">
@@ -217,24 +210,22 @@ export default function Clientes() {
         <div className="modal-overlay">
           <div className="modal">
             <h2>{editandoId ? 'Editar Cliente' : 'Agregar Cliente'}</h2>
-            
             <div className="campo">
               <label>Nombre *</label>
               <input type="text" name="nombre" value={form.nombre} onChange={cambiarForm} />
             </div>
             <div className="campo">
               <label>Documento (CC/NIT)</label>
-              <input type="text" name="documento" value={form.documento} onChange={cambiarForm} placeholder="Ej: 12345678" />
+              <input type="text" name="documento" value={form.documento || ''} onChange={cambiarForm} placeholder="Ej: 12345678" />
             </div>
             <div className="campo">
               <label>Teléfono</label>
-              <input type="text" name="telefono" value={form.telefono} onChange={cambiarForm} placeholder="Ej: 3001234567" />
+              <input type="text" name="telefono" value={form.telefono || ''} onChange={cambiarForm} placeholder="Ej: 3001234567" />
             </div>
             <div className="campo">
               <label>Límite de Crédito ($)</label>
-              <input type="number" name="limite_credito" value={form.limite_credito} onChange={cambiarForm} placeholder="0" min="0" />
+              <input type="number" name="limite_credito" value={form.limite_credito || ''} onChange={cambiarForm} placeholder="0" min="0" />
             </div>
-
             <div className="modal-botones">
               <button className="btn btn-rojo" onClick={() => setMostrarModal(false)}>Cancelar</button>
               <button className="btn btn-gold" onClick={guardar}>Guardar</button>
@@ -248,34 +239,34 @@ export default function Clientes() {
         <div className="modal-overlay">
           <div className="modal modal-grande">
             <div className="detalle-header">
-              <h2>{clienteActual.nombre}</h2>
+              <h2>👤 {clienteActual.nombre}</h2>
               <div className="detalle-info">
-                <div>
+                <div className="detalle-dato">
                   <span className="label">Documento</span>
                   <span className="valor">{clienteActual.documento || '—'}</span>
                 </div>
-                <div>
+                <div className="detalle-dato">
                   <span className="label">Teléfono</span>
                   <span className="valor">{clienteActual.telefono || '—'}</span>
                 </div>
-                <div>
+                <div className="detalle-dato">
                   <span className="label">Saldo Actual</span>
-                  <span className="valor" style={{ color: '#C9A84C' }}>
+                  <span className="valor" style={{ color: '#f5a623' }}>
                     ${Number(clienteActual.saldo_deuda).toLocaleString('es-CO')}
                   </span>
                 </div>
-                <div>
+                <div className="detalle-dato">
                   <span className="label">Límite Crédito</span>
                   <span className="valor">${Number(clienteActual.limite_credito).toLocaleString('es-CO')}</span>
                 </div>
               </div>
             </div>
 
-            <h3>Deudas Pendientes</h3>
+            <h3 style={{ color: '#f5a623', margin: '16px 0 10px' }}>Deudas Pendientes</h3>
             {detallesCliente.deudas.length === 0 ? (
-              <p className="vacio">Sin deudas</p>
+              <p className="vacio">✅ Sin deudas pendientes</p>
             ) : (
-              <table className="tabla-deudas">
+              <table className="tabla">
                 <thead>
                   <tr>
                     <th>Venta #</th>
@@ -297,15 +288,10 @@ export default function Clientes() {
                       </td>
                       <td>{new Date(d.fecha).toLocaleDateString('es-CO')}</td>
                       <td>
-                        {d.estado !== 'pagada' && (
-                          <button 
-                            className="btn btn-sm"
-                            onClick={() => registrarAbono(d.id, d.total)}
-                          >
-                            Abonar
-                          </button>
-                        )}
-                        {d.estado === 'pagada' && <span>✅ Pagada</span>}
+                        {d.estado !== 'pagada'
+                          ? <button className="btn btn-sm btn-gold" onClick={() => abrirAbono(d)}>Abonar</button>
+                          : <span style={{ color: '#2ecc71' }}>✅ Pagada</span>
+                        }
                       </td>
                     </tr>
                   ))}
@@ -315,6 +301,61 @@ export default function Clientes() {
 
             <div className="modal-botones">
               <button className="btn btn-rojo" onClick={() => setMostrarDetalles(false)}>Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL ABONO */}
+      {mostrarAbono && ventaAbonar && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>💰 Registrar Abono</h2>
+            <div className="abono-info">
+              <p>Venta <strong>#{ventaAbonar.id}</strong></p>
+              <p>Deuda total: <strong style={{ color: '#e74c3c' }}>${Number(ventaAbonar.total).toLocaleString('es-CO')}</strong></p>
+            </div>
+            <div className="campo">
+              <label>Monto a abonar ($)</label>
+              <input
+                type="number"
+                value={formAbono.monto}
+                onChange={(e) => setFormAbono({ ...formAbono, monto: e.target.value })}
+                placeholder="0"
+                min="0"
+                max={ventaAbonar.total}
+              />
+            </div>
+            <div className="campo">
+              <label>Medio de pago</label>
+              <select
+                value={formAbono.medio_pago}
+                onChange={(e) => setFormAbono({ ...formAbono, medio_pago: e.target.value })}
+              >
+                <option value="efectivo">💵 Efectivo</option>
+                <option value="transferencia">📱 Transferencia</option>
+                <option value="tarjeta">💳 Tarjeta</option>
+              </select>
+            </div>
+            {formAbono.medio_pago === 'transferencia' && (
+              <div className="campo">
+                <label>Banco/Plataforma</label>
+                <select
+                  value={formAbono.banco}
+                  onChange={(e) => setFormAbono({ ...formAbono, banco: e.target.value })}
+                >
+                  <option value="">Selecciona...</option>
+                  <option value="Nequi">Nequi</option>
+                  <option value="Bancolombia">Bancolombia</option>
+                  <option value="Davivienda">Davivienda</option>
+                  <option value="Daviplata">Daviplata</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+            )}
+            <div className="modal-botones">
+              <button className="btn btn-rojo" onClick={() => setMostrarAbono(false)}>Cancelar</button>
+              <button className="btn btn-gold" onClick={registrarAbono}>✅ Confirmar Abono</button>
             </div>
           </div>
         </div>
