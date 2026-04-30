@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { productosAPI, ventasAPI, clientesAPI } from '../api/servicios';
 import './Ventas.css';
 
@@ -14,10 +14,12 @@ export default function Ventas() {
   const [historial, setHistorial] = useState([]);
   const [banco, setBanco] = useState('');
   const [cargando, setCargando] = useState(true);
+  const [dineroRecibido, setDineroRecibido] = useState('');
+  const [reciboVisible, setReciboVisible] = useState(false);
+  const [ultimaVenta, setUltimaVenta] = useState(null);
+  const reciboRef = useRef();
 
-  useEffect(() => {
-    cargarDatos();
-  }, []);
+  useEffect(() => { cargarDatos(); }, []);
 
   const cargarDatos = async () => {
     try {
@@ -73,9 +75,7 @@ export default function Ventas() {
     setCarrito(nuevoCarrito);
   };
 
-  const quitarItem = (index) => {
-    setCarrito(carrito.filter((_, i) => i !== index));
-  };
+  const quitarItem = (index) => setCarrito(carrito.filter((_, i) => i !== index));
 
   const limpiarCarrito = () => {
     setCarrito([]);
@@ -83,40 +83,54 @@ export default function Ventas() {
     setBanco('');
     setClienteSeleccionado('');
     setMesa('');
+    setDineroRecibido('');
   };
 
-  const calcularTotal = () => {
-    return carrito.reduce((acc, i) => acc + (i.precio_unitario * i.cantidad), 0);
+  const calcularTotal = () => carrito.reduce((acc, i) => acc + (i.precio_unitario * i.cantidad), 0);
+
+  const calcularVuelto = () => {
+    const recibido = parseFloat(dineroRecibido) || 0;
+    const total = calcularTotal();
+    return recibido - total;
   };
 
   const registrarVenta = async () => {
-    if (carrito.length === 0) {
-      alert('Agrega productos al carrito');
-      return;
-    }
-    if (!medioSeleccionado) {
-      alert('Selecciona un medio de pago');
-      return;
-    }
-    if (medioSeleccionado === 'transferencia' && !banco) {
-      alert('Selecciona el banco');
-      return;
+    if (carrito.length === 0) { alert('Agrega productos al carrito'); return; }
+    if (!medioSeleccionado) { alert('Selecciona un medio de pago'); return; }
+    if (medioSeleccionado === 'transferencia' && !banco) { alert('Selecciona el banco'); return; }
+    if (medioSeleccionado === 'efectivo' && dineroRecibido && calcularVuelto() < 0) {
+      alert('El dinero recibido es menor al total'); return;
     }
 
     try {
       const total = calcularTotal();
       const estado = clienteSeleccionado && medioSeleccionado !== 'efectivo' ? 'pendiente' : 'pagada';
-      
-      await ventasAPI.crear({
+      const clienteNombre = clientes.find(c => c.id === parseInt(clienteSeleccionado))?.nombre || null;
+
+      const res = await ventasAPI.crear({
         cliente_id: clienteSeleccionado || null,
         items: carrito,
         medio_pago: medioSeleccionado,
         banco: banco || null,
         mesa: mesa || null,
-        estado: estado
+        estado
       });
 
-      alert(`✅ Venta registrada por $${total.toLocaleString('es-CO')}`);
+      setUltimaVenta({
+        id: res.data.id,
+        fecha: new Date().toLocaleString('es-CO'),
+        items: [...carrito],
+        total,
+        medio_pago: medioSeleccionado,
+        banco,
+        mesa,
+        cliente: clienteNombre,
+        dineroRecibido: parseFloat(dineroRecibido) || 0,
+        vuelto: medioSeleccionado === 'efectivo' ? calcularVuelto() : 0,
+        estado
+      });
+
+      setReciboVisible(true);
       limpiarCarrito();
       cargarDatos();
     } catch (err) {
@@ -124,8 +138,34 @@ export default function Ventas() {
     }
   };
 
+  const imprimirRecibo = () => {
+    const contenido = reciboRef.current.innerHTML;
+    const ventana = window.open('', '_blank', 'width=400,height=600');
+    ventana.document.write(`
+      <html>
+        <head>
+          <title>Recibo Licores L&P</title>
+          <style>
+            body { font-family: monospace; font-size: 13px; padding: 20px; color: #000; }
+            h2 { text-align: center; margin-bottom: 4px; }
+            p { margin: 2px 0; }
+            .linea { border-top: 1px dashed #000; margin: 8px 0; }
+            table { width: 100%; border-collapse: collapse; }
+            td { padding: 2px 4px; }
+            .derecha { text-align: right; }
+            .total { font-weight: bold; font-size: 15px; }
+          </style>
+        </head>
+        <body>${contenido}</body>
+      </html>
+    `);
+    ventana.document.close();
+    ventana.print();
+  };
+
   const total = calcularTotal();
   const items = carrito.reduce((acc, i) => acc + i.cantidad, 0);
+  const vuelto = calcularVuelto();
 
   if (cargando) return <div className="contenedor"><p>Cargando...</p></div>;
 
@@ -182,9 +222,7 @@ export default function Ventas() {
                   <td>${item.precio_unitario.toLocaleString('es-CO')}</td>
                   <td>
                     <input
-                      type="number"
-                      min="1"
-                      value={item.cantidad}
+                      type="number" min="1" value={item.cantidad}
                       onChange={(e) => cambiarCantidad(i, e.target.value)}
                       className="input-cantidad"
                     />
@@ -224,41 +262,25 @@ export default function Ventas() {
               </option>
             ))}
           </select>
-          {clienteSeleccionado && (
-            <p className="cliente-info">
-              Cliente seleccionado - Venta a crédito
-            </p>
-          )}
         </div>
 
         <div className="campo">
           <label>Mesa (opcional)</label>
-          <input
-            type="text"
-            value={mesa}
-            onChange={(e) => setMesa(e.target.value)}
-            placeholder="Ej: Mesa 1, Barra..."
-          />
+          <input type="text" value={mesa} onChange={(e) => setMesa(e.target.value)} placeholder="Ej: Mesa 1, Barra..." />
         </div>
 
-        <p style={{ fontSize: '12px', color: '#666', marginBottom: '8px', fontWeight: '600' }}>MEDIO DE PAGO</p>
+        <p className="label-seccion">MEDIO DE PAGO</p>
         <div className="medios-grid">
-          <button
-            className={`medio-btn ${medioSeleccionado === 'efectivo' ? 'seleccionado' : ''}`}
-            onClick={() => { setMedioSeleccionado('efectivo'); setBanco(''); }}
-          >
+          <button className={`medio-btn ${medioSeleccionado === 'efectivo' ? 'seleccionado' : ''}`}
+            onClick={() => { setMedioSeleccionado('efectivo'); setBanco(''); }}>
             💵 Efectivo
           </button>
-          <button
-            className={`medio-btn ${medioSeleccionado === 'transferencia' ? 'seleccionado' : ''}`}
-            onClick={() => setMedioSeleccionado('transferencia')}
-          >
+          <button className={`medio-btn ${medioSeleccionado === 'transferencia' ? 'seleccionado' : ''}`}
+            onClick={() => { setMedioSeleccionado('transferencia'); setDineroRecibido(''); }}>
             📱 Transferencia
           </button>
-          <button
-            className={`medio-btn ${medioSeleccionado === 'tarjeta' ? 'seleccionado' : ''}`}
-            onClick={() => { setMedioSeleccionado('tarjeta'); setBanco(''); }}
-          >
+          <button className={`medio-btn ${medioSeleccionado === 'tarjeta' ? 'seleccionado' : ''}`}
+            onClick={() => { setMedioSeleccionado('tarjeta'); setBanco(''); setDineroRecibido(''); }}>
             💳 Tarjeta
           </button>
         </div>
@@ -275,6 +297,26 @@ export default function Ventas() {
               <option value="Daviplata">Daviplata</option>
               <option value="Otro">Otro</option>
             </select>
+          </div>
+        )}
+
+        {medioSeleccionado === 'efectivo' && (
+          <div className="vuelto-box">
+            <div className="campo">
+              <label>💵 Dinero recibido</label>
+              <input
+                type="number"
+                value={dineroRecibido}
+                onChange={(e) => setDineroRecibido(e.target.value)}
+                placeholder="¿Cuánto pagó el cliente?"
+              />
+            </div>
+            {dineroRecibido && (
+              <div className={`vuelto-resultado ${vuelto < 0 ? 'vuelto-negativo' : 'vuelto-positivo'}`}>
+                <span>{vuelto < 0 ? '❌ Falta:' : '✅ Vuelto:'}</span>
+                <strong>${Math.abs(vuelto).toLocaleString('es-CO')}</strong>
+              </div>
+            )}
           </div>
         )}
 
@@ -298,6 +340,63 @@ export default function Ventas() {
           ))}
         </div>
       </div>
+
+      {reciboVisible && ultimaVenta && (
+        <div className="modal-overlay">
+          <div className="modal-recibo">
+            <div ref={reciboRef}>
+              <h2>🍾 Licores L&P</h2>
+              <p style={{ textAlign: 'center', color: '#888' }}>Domicilios: 301 5098967</p>
+              <div className="linea-recibo"></div>
+              <p><strong>Recibo #{ultimaVenta.id}</strong></p>
+              <p>Fecha: {ultimaVenta.fecha}</p>
+              {ultimaVenta.cliente && <p>Cliente: {ultimaVenta.cliente}</p>}
+              {ultimaVenta.mesa && <p>Mesa: {ultimaVenta.mesa}</p>}
+              <div className="linea-recibo"></div>
+              <table style={{ width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left' }}>Producto</th>
+                    <th style={{ textAlign: 'center' }}>Cant.</th>
+                    <th style={{ textAlign: 'right' }}>Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ultimaVenta.items.map((item, i) => (
+                    <tr key={i}>
+                      <td>{item.nombre}</td>
+                      <td style={{ textAlign: 'center' }}>{item.cantidad}</td>
+                      <td style={{ textAlign: 'right' }}>${(item.precio_unitario * item.cantidad).toLocaleString('es-CO')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="linea-recibo"></div>
+              <div className="recibo-total">
+                <span>TOTAL</span>
+                <strong>${ultimaVenta.total.toLocaleString('es-CO')}</strong>
+              </div>
+              <p>Pago: {ultimaVenta.medio_pago} {ultimaVenta.banco ? `(${ultimaVenta.banco})` : ''}</p>
+              {ultimaVenta.medio_pago === 'efectivo' && ultimaVenta.dineroRecibido > 0 && (
+                <>
+                  <p>Recibido: ${ultimaVenta.dineroRecibido.toLocaleString('es-CO')}</p>
+                  <p><strong>Vuelto: ${ultimaVenta.vuelto.toLocaleString('es-CO')}</strong></p>
+                </>
+              )}
+              {ultimaVenta.estado === 'pendiente' && (
+                <p style={{ color: 'orange' }}>⚠️ Venta a crédito pendiente</p>
+              )}
+              <div className="linea-recibo"></div>
+              <p style={{ textAlign: 'center' }}>¡Gracias por su compra!</p>
+            </div>
+
+            <div className="recibo-botones">
+              <button className="btn btn-gold" onClick={imprimirRecibo}>🖨️ Imprimir</button>
+              <button className="btn btn-rojo" onClick={() => setReciboVisible(false)}>Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
