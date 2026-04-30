@@ -3,6 +3,8 @@ import Login from './componentes/Login';
 import Ventas from './componentes/Ventas';
 import Inventario from './componentes/Inventario';
 import Clientes from './componentes/Clientes';
+import Proveedores from './componentes/Proveedores';
+import Mesas from './componentes/Mesas';
 import logo from './logo-licores.jpeg';
 import './App.css';
 
@@ -56,6 +58,8 @@ function App() {
   { id: 'ventas', label: '🛒 Ventas' },
   { id: 'inventario', label: '📦 Inventario' },
   { id: 'clientes', label: '👥 Clientes' },
+  { id: 'proveedores', label: '🚚 Proveedores' },
+  { id: 'mesas', label: '🪑 Mesas' },
 ];
 
   const menuEmpleado = [
@@ -103,6 +107,8 @@ function App() {
         {modulo === 'ventas' && <Ventas />}
         {modulo === 'inventario' && <Inventario />}
         {modulo === 'clientes' && <Clientes />}
+        {modulo === 'proveedores' && <Proveedores />}
+        {modulo === 'mesas' && <Mesas />}
       </main>
     </div>
   );

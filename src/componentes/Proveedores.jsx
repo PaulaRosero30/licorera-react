@@ -14,20 +14,11 @@ export default function Proveedores() {
   const [eliminarId, setEliminarId] = useState(null);
 
   const [form, setForm] = useState({
-    nombre: '',
-    nit: '',
-    telefono: '',
-    correo: '',
-    direccion: ''
+    nombre: '', nit: '', telefono: '', correo: '', direccion: ''
   });
 
-  useEffect(() => {
-    cargarProveedores();
-  }, []);
-
-  useEffect(() => {
-    filtrar();
-  }, [proveedores, buscador]);
+  useEffect(() => { cargarProveedores(); }, []);
+  useEffect(() => { filtrar(); }, [proveedores, buscador]);
 
   const cargarProveedores = async () => {
     try {
@@ -44,35 +35,23 @@ export default function Proveedores() {
 
   const filtrar = () => {
     let resultado = proveedores;
-    
     if (buscador) {
-      resultado = resultado.filter(p => 
+      resultado = resultado.filter(p =>
         p.nombre.toLowerCase().includes(buscador.toLowerCase()) ||
         (p.nit || '').includes(buscador)
       );
     }
-
     setFiltrados(resultado);
   };
 
   const abrirModal = () => {
     setEditandoId(null);
-    setForm({
-      nombre: '',
-      nit: '',
-      telefono: '',
-      correo: '',
-      direccion: ''
-    });
+    setForm({ nombre: '', nit: '', telefono: '', correo: '', direccion: '' });
     setMostrarModal(true);
   };
 
   const guardar = async () => {
-    if (!form.nombre) {
-      alert('El nombre es obligatorio');
-      return;
-    }
-
+    if (!form.nombre) { alert('El nombre es obligatorio'); return; }
     try {
       if (editandoId) {
         await proveedoresAPI.actualizar(editandoId, form);
@@ -113,11 +92,6 @@ export default function Proveedores() {
     setForm({ ...form, [name]: value });
   };
 
-  const stats = {
-    total: proveedores.length,
-    conPedidos: proveedores.filter(p => p.total_pedidos > 0).length
-  };
-
   if (cargando) return <div className="contenedor"><p>Cargando...</p></div>;
 
   return (
@@ -127,11 +101,11 @@ export default function Proveedores() {
       <div className="stats-grid">
         <div className="stat-card">
           <h3>Total Proveedores</h3>
-          <p>{stats.total}</p>
+          <p>{proveedores.length}</p>
         </div>
         <div className="stat-card">
           <h3>Con Pedidos</h3>
-          <p>{stats.conPedidos}</p>
+          <p>{proveedores.filter(p => p.total_pedidos > 0).length}</p>
         </div>
       </div>
 
@@ -170,7 +144,9 @@ export default function Proveedores() {
                 <td>{p.telefono || '—'}</td>
                 <td>{p.correo || '—'}</td>
                 <td>{p.direccion || '—'}</td>
-                <td style={{ textAlign: 'center' }}>{p.total_pedidos || 0}</td>
+                <td style={{ textAlign: 'center' }}>
+                  <span className="badge badge-ok">{p.total_pedidos || 0}</span>
+                </td>
                 <td className="acciones">
                   <button className="btn btn-sm" onClick={() => editar(p)}>Editar</button>
                   <button className="btn btn-sm btn-rojo" onClick={() => abrirConfirm(p.id)}>Inactivar</button>
@@ -186,28 +162,26 @@ export default function Proveedores() {
         <div className="modal-overlay">
           <div className="modal">
             <h2>{editandoId ? 'Editar Proveedor' : 'Agregar Proveedor'}</h2>
-            
             <div className="campo">
               <label>Nombre *</label>
               <input type="text" name="nombre" value={form.nombre} onChange={cambiarForm} />
             </div>
             <div className="campo">
               <label>NIT</label>
-              <input type="text" name="nit" value={form.nit} onChange={cambiarForm} placeholder="Ej: 900123456-1" />
+              <input type="text" name="nit" value={form.nit || ''} onChange={cambiarForm} placeholder="Ej: 900123456-1" />
             </div>
             <div className="campo">
               <label>Teléfono</label>
-              <input type="text" name="telefono" value={form.telefono} onChange={cambiarForm} placeholder="Ej: 3001234567" />
+              <input type="text" name="telefono" value={form.telefono || ''} onChange={cambiarForm} placeholder="Ej: 3001234567" />
             </div>
             <div className="campo">
               <label>Correo</label>
-              <input type="email" name="correo" value={form.correo} onChange={cambiarForm} placeholder="Ej: ventas@proveedor.com" />
+              <input type="email" name="correo" value={form.correo || ''} onChange={cambiarForm} placeholder="Ej: ventas@proveedor.com" />
             </div>
             <div className="campo">
               <label>Dirección</label>
-              <input type="text" name="direccion" value={form.direccion} onChange={cambiarForm} placeholder="Ej: Calle 10 # 20-30" />
+              <input type="text" name="direccion" value={form.direccion || ''} onChange={cambiarForm} placeholder="Ej: Calle 10 # 20-30" />
             </div>
-
             <div className="modal-botones">
               <button className="btn btn-rojo" onClick={() => setMostrarModal(false)}>Cancelar</button>
               <button className="btn btn-gold" onClick={guardar}>Guardar</button>
@@ -216,13 +190,16 @@ export default function Proveedores() {
         </div>
       )}
 
-      {/* MODAL CONFIRMAR ELIMINAR */}
+      {/* MODAL CONFIRMAR INACTIVAR */}
       {mostrarConfirm && (
         <div className="modal-overlay">
-          <div className="modal confirm-modal">
-            <p>¿Seguro que quieres inactivar este proveedor?</p>
-            <div className="modal-botones">
-              <button className="btn btn-azul" onClick={() => setMostrarConfirm(false)}>Cancelar</button>
+          <div className="modal" style={{ maxWidth: '380px', textAlign: 'center' }}>
+            <h2>⚠️ Confirmar</h2>
+            <p style={{ color: '#ccc', marginBottom: '24px' }}>
+              ¿Seguro que quieres inactivar este proveedor?
+            </p>
+            <div className="modal-botones" style={{ justifyContent: 'center' }}>
+              <button className="btn btn-sm" onClick={() => setMostrarConfirm(false)}>Cancelar</button>
               <button className="btn btn-rojo" onClick={confirmarEliminar}>Sí, inactivar</button>
             </div>
           </div>

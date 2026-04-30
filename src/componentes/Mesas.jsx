@@ -12,16 +12,13 @@ export default function Mesas() {
   const [mostrarCerrar, setMostrarCerrar] = useState(false);
   const [nuevaMesa, setNuevaMesa] = useState('');
   const [cargando, setCargando] = useState(true);
+  const [pagos, setPagos] = useState({});
 
   const [formProducto, setFormProducto] = useState({
-    persona_nombre: '',
-    producto_id: '',
-    cantidad: 1
+    persona_nombre: '', producto_id: '', cantidad: 1
   });
 
-  useEffect(() => {
-    cargarDatos();
-  }, []);
+  useEffect(() => { cargarDatos(); }, []);
 
   const cargarDatos = async () => {
     try {
@@ -40,10 +37,7 @@ export default function Mesas() {
   };
 
   const abrirMesa = async () => {
-    if (!nuevaMesa.trim()) {
-      alert('Escribe el nombre de la mesa');
-      return;
-    }
+    if (!nuevaMesa.trim()) { alert('Escribe el nombre de la mesa'); return; }
     try {
       await mesasAPI.crear({ numero: nuevaMesa });
       setNuevaMesa('');
@@ -59,9 +53,7 @@ export default function Mesas() {
       setMesaActual(mesa);
       setDetallesMesa(res.data);
       const personas = [...new Set(res.data.map(d => d.persona))];
-      if (personas.length > 0) {
-        setPersonaActual(personas[0]);
-      }
+      if (personas.length > 0) setPersonaActual(personas[0]);
     } catch (err) {
       alert('Error: ' + err.message);
     }
@@ -69,10 +61,8 @@ export default function Mesas() {
 
   const agregarProducto = async () => {
     if (!mesaActual || !formProducto.persona_nombre || !formProducto.producto_id) {
-      alert('Completa todos los campos');
-      return;
+      alert('Completa todos los campos'); return;
     }
-
     const prod = productos.find(p => p.id === Number(formProducto.producto_id));
     try {
       await mesasAPI.agregar(mesaActual.id, {
@@ -100,19 +90,19 @@ export default function Mesas() {
     }
   };
 
-  const cerrarMesa = async () => {
+  const abrirCerrar = () => {
     const personas = [...new Set(detallesMesa.map(d => d.persona))];
-    const pagos = {};
+    const pagosIniciales = {};
+    personas.forEach(p => {
+      pagosIniciales[p] = { persona: p, medio_pago: 'efectivo', banco: '' };
+    });
+    setPagos(pagosIniciales);
+    setMostrarCerrar(true);
+  };
 
-    for (const persona of personas) {
-      const medio = prompt(`${persona} - Medio de pago (efectivo/transferencia/tarjeta):`);
-      if (!medio) return;
-      pagos[persona] = { persona, medio_pago: medio, banco: null };
-    }
-
+  const cerrarMesa = async () => {
     try {
       await mesasAPI.cerrar(mesaActual.id, { pagos: Object.values(pagos) });
-      alert('✅ Mesa cerrada correctamente');
       setMesaActual(null);
       setPersonaActual(null);
       setDetallesMesa([]);
@@ -125,7 +115,8 @@ export default function Mesas() {
 
   const personasEnMesa = [...new Set(detallesMesa.map(d => d.persona))];
   const itemsPersona = detallesMesa.filter(d => d.persona === personaActual);
-  const totalPersona = itemsPersona.reduce((acc, i) => acc + (i.cantidad * i.precio_unitario), 0);
+  const totalPersona = itemsPersona.reduce((acc, i) => acc + (i.cantidad * Number(i.precio_unitario)), 0);
+  const totalMesa = detallesMesa.reduce((acc, i) => acc + (i.cantidad * Number(i.precio_unitario)), 0);
 
   if (cargando) return <div className="contenedor"><p>Cargando...</p></div>;
 
@@ -138,126 +129,124 @@ export default function Mesas() {
             type="text"
             value={nuevaMesa}
             onChange={(e) => setNuevaMesa(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && abrirMesa()}
             placeholder="Nombre de la mesa (Ej: Mesa 1, VIP)..."
           />
           <button className="btn btn-gold" onClick={abrirMesa}>+ Abrir Mesa</button>
         </div>
 
-        <div className="mesas-grid">
-          {mesas.length === 0 ? (
-            <p className="vacio">No hay mesas abiertas</p>
-          ) : (
-            mesas.map(m => (
-              <div
-                key={m.id}
-                className="mesa-card"
-                onClick={() => seleccionarMesa(m)}
-              >
+        {mesas.length === 0 ? (
+          <p className="vacio">No hay mesas abiertas</p>
+        ) : (
+          <div className="mesas-grid">
+            {mesas.map(m => (
+              <div key={m.id} className="mesa-card" onClick={() => seleccionarMesa(m)}>
+                <div className="mesa-icono">🪑</div>
                 <div className="mesa-numero">{m.numero}</div>
                 <div className="mesa-info">{m.productos || 0} productos</div>
                 <div className="mesa-total">${Number(m.total || 0).toLocaleString('es-CO')}</div>
+                <div className="mesa-estado">Abierta</div>
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="detalle-mesa-layout">
-      <button className="btn btn-rojo" onClick={() => setMesaActual(null)} style={{ marginBottom: '16px' }}>
-        ← Volver
-      </button>
+    <div className="contenedor">
+      <div className="detalle-header">
+        <button className="btn btn-sm" onClick={() => setMesaActual(null)}>← Volver</button>
+        <h2>🪑 {mesaActual.numero}</h2>
+        <div className="detalle-acciones">
+          <button className="btn btn-gold" onClick={() => setMostrarModal(true)}>+ Agregar Producto</button>
+          <button className="btn btn-verde" onClick={abrirCerrar}>✅ Cerrar Mesa</button>
+        </div>
+      </div>
 
-      <h2>Mesa: {mesaActual.numero}</h2>
+      <div className="mesa-resumen">
+        <div className="resumen-dato">
+          <span>Total mesa</span>
+          <strong>${totalMesa.toLocaleString('es-CO')}</strong>
+        </div>
+        <div className="resumen-dato">
+          <span>Personas</span>
+          <strong>{personasEnMesa.length}</strong>
+        </div>
+        <div className="resumen-dato">
+          <span>Productos</span>
+          <strong>{detallesMesa.length}</strong>
+        </div>
+      </div>
 
       <div className="personas-tabs">
-        {personasEnMesa.length === 0 ? (
-          <p>Sin productos aún</p>
-        ) : (
-          personasEnMesa.map(persona => (
-            <button
-              key={persona}
-              className={`persona-tab ${personaActual === persona ? 'activa' : ''}`}
-              onClick={() => setPersonaActual(persona)}
-            >
-              {persona}
-            </button>
-          ))
-        )}
+        {personasEnMesa.map(p => (
+          <button
+            key={p}
+            className={`persona-tab ${personaActual === p ? 'activo' : ''}`}
+            onClick={() => setPersonaActual(p)}
+          >
+            👤 {p}
+          </button>
+        ))}
       </div>
 
       {personaActual && (
-        <>
-          <table className="tabla-detalle">
-            <thead>
-              <tr>
-                <th>Producto</th>
-                <th>Cant.</th>
-                <th>Precio</th>
-                <th>Subtotal</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {itemsPersona.length === 0 ? (
-                <tr><td colSpan="5" className="vacio">Sin productos</td></tr>
-              ) : (
-                itemsPersona.map(item => (
+        <div className="detalle-persona">
+          <h3>Consumo de {personaActual}</h3>
+          {itemsPersona.length === 0 ? (
+            <p className="vacio">Sin productos</p>
+          ) : (
+            <table className="tabla">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Precio</th>
+                  <th>Cant.</th>
+                  <th>Subtotal</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {itemsPersona.map(item => (
                   <tr key={item.id}>
-                    <td>{item.producto_nombre}</td>
-                    <td>{item.cantidad}</td>
+                    <td><strong>{item.nombre}</strong></td>
                     <td>${Number(item.precio_unitario).toLocaleString('es-CO')}</td>
-                    <td><strong>${(item.cantidad * item.precio_unitario).toLocaleString('es-CO')}</strong></td>
+                    <td>{item.cantidad}</td>
+                    <td><strong>${(item.cantidad * Number(item.precio_unitario)).toLocaleString('es-CO')}</strong></td>
                     <td>
-                      <button
-                        className="btn btn-sm btn-rojo"
-                        onClick={() => quitarProducto(item.id)}
-                      >
-                        ✕
-                      </button>
+                      <button className="btn btn-sm btn-rojo" onClick={() => quitarProducto(item.id)}>✕</button>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-
+                ))}
+              </tbody>
+            </table>
+          )}
           <div className="total-persona">
             <span>Total {personaActual}:</span>
-            <span className="monto">${totalPersona.toLocaleString('es-CO')}</span>
+            <strong>${totalPersona.toLocaleString('es-CO')}</strong>
           </div>
-        </>
+        </div>
       )}
 
-      <button
-        className="btn btn-gold"
-        onClick={() => setMostrarModal(true)}
-        style={{ marginTop: '16px', marginRight: '8px' }}
-      >
-        + Agregar Producto
-      </button>
-      <button
-        className="btn btn-verde"
-        onClick={() => setMostrarCerrar(true)}
-        style={{ marginTop: '16px' }}
-      >
-        ✅ Cerrar Mesa
-      </button>
-
+      {/* MODAL AGREGAR PRODUCTO */}
       {mostrarModal && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>Agregar Producto</h2>
+            <h2>+ Agregar Producto</h2>
             <div className="campo">
               <label>Persona</label>
               <input
                 type="text"
                 value={formProducto.persona_nombre}
                 onChange={(e) => setFormProducto({ ...formProducto, persona_nombre: e.target.value })}
-                placeholder="Ej: Juan, María..."
+                placeholder="Nombre de la persona..."
+                list="personas-list"
               />
+              <datalist id="personas-list">
+                {personasEnMesa.map(p => <option key={p} value={p} />)}
+              </datalist>
             </div>
             <div className="campo">
               <label>Producto</label>
@@ -265,10 +254,10 @@ export default function Mesas() {
                 value={formProducto.producto_id}
                 onChange={(e) => setFormProducto({ ...formProducto, producto_id: e.target.value })}
               >
-                <option value="">Selecciona...</option>
+                <option value="">Selecciona un producto...</option>
                 {productos.map(p => (
                   <option key={p.id} value={p.id}>
-                    {p.nombre} - ${Number(p.precio_venta).toLocaleString('es-CO')}
+                    {p.nombre} — ${Number(p.precio_venta).toLocaleString('es-CO')}
                   </option>
                 ))}
               </select>
@@ -279,25 +268,78 @@ export default function Mesas() {
                 type="number"
                 min="1"
                 value={formProducto.cantidad}
-                onChange={(e) => setFormProducto({ ...formProducto, cantidad: Number(e.target.value) })}
+                onChange={(e) => setFormProducto({ ...formProducto, cantidad: e.target.value })}
               />
             </div>
             <div className="modal-botones">
               <button className="btn btn-rojo" onClick={() => setMostrarModal(false)}>Cancelar</button>
-              <button className="btn btn-gold" onClick={agregarProducto}>Guardar</button>
+              <button className="btn btn-gold" onClick={agregarProducto}>Agregar</button>
             </div>
           </div>
         </div>
       )}
 
+      {/* MODAL CERRAR MESA */}
       {mostrarCerrar && (
         <div className="modal-overlay">
-          <div className="modal">
-            <h2>Cerrar Mesa</h2>
-            <p>Se solicitará el medio de pago para cada persona.</p>
+          <div className="modal modal-grande">
+            <h2>✅ Cerrar Mesa — {mesaActual.numero}</h2>
+            <p style={{ color: '#aaa', marginBottom: '16px' }}>
+              Selecciona el medio de pago por persona:
+            </p>
+            {personasEnMesa.map(persona => {
+              const totalP = detallesMesa
+                .filter(d => d.persona === persona)
+                .reduce((acc, i) => acc + (i.cantidad * Number(i.precio_unitario)), 0);
+              return (
+                <div key={persona} className="pago-persona">
+                  <div className="pago-header">
+                    <span>👤 <strong>{persona}</strong></span>
+                    <span style={{ color: '#f5a623' }}>${totalP.toLocaleString('es-CO')}</span>
+                  </div>
+                  <div className="campo">
+                    <label>Medio de pago</label>
+                    <select
+                      value={pagos[persona]?.medio_pago || 'efectivo'}
+                      onChange={(e) => setPagos({
+                        ...pagos,
+                        [persona]: { ...pagos[persona], medio_pago: e.target.value }
+                      })}
+                    >
+                      <option value="efectivo">💵 Efectivo</option>
+                      <option value="transferencia">📱 Transferencia</option>
+                      <option value="tarjeta">💳 Tarjeta</option>
+                    </select>
+                  </div>
+                  {pagos[persona]?.medio_pago === 'transferencia' && (
+                    <div className="campo">
+                      <label>Banco</label>
+                      <select
+                        value={pagos[persona]?.banco || ''}
+                        onChange={(e) => setPagos({
+                          ...pagos,
+                          [persona]: { ...pagos[persona], banco: e.target.value }
+                        })}
+                      >
+                        <option value="">Selecciona...</option>
+                        <option value="Nequi">Nequi</option>
+                        <option value="Bancolombia">Bancolombia</option>
+                        <option value="Davivienda">Davivienda</option>
+                        <option value="Daviplata">Daviplata</option>
+                        <option value="Otro">Otro</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            <div className="total-cierre">
+              <span>Total a cobrar:</span>
+              <strong>${totalMesa.toLocaleString('es-CO')}</strong>
+            </div>
             <div className="modal-botones">
-              <button className="btn btn-rojo" onClick={() => setMostrarCerrar(false)}>Cancelar</button>
-              <button className="btn btn-verde" onClick={cerrarMesa}>Procesar Cierre</button>
+              <button className="btn btn-sm" onClick={() => setMostrarCerrar(false)}>Cancelar</button>
+              <button className="btn btn-verde" onClick={cerrarMesa}>✅ Confirmar Cierre</button>
             </div>
           </div>
         </div>
