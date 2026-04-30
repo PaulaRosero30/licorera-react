@@ -5,6 +5,7 @@ import Inventario from './componentes/Inventario';
 import Clientes from './componentes/Clientes';
 import Proveedores from './componentes/Proveedores';
 import Mesas from './componentes/Mesas';
+import Informes from './componentes/Informes';
 import logo from './logo-licores.jpeg';
 import './App.css';
 
@@ -60,6 +61,7 @@ function App() {
   { id: 'clientes', label: '👥 Clientes' },
   { id: 'proveedores', label: '🚚 Proveedores' },
   { id: 'mesas', label: '🪑 Mesas' },
+  { id: 'informes', label: '📊 Informes' },
 ];
 
   const menuEmpleado = [
@@ -109,6 +111,7 @@ function App() {
         {modulo === 'clientes' && <Clientes />}
         {modulo === 'proveedores' && <Proveedores />}
         {modulo === 'mesas' && <Mesas />}
+        {modulo === 'informes' && <Informes />}
       </main>
     </div>
   );

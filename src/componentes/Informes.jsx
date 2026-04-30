@@ -10,11 +10,10 @@ export default function Informes() {
   const [ingresos, setIngresos] = useState([]);
   const [medios, setMedios] = useState([]);
   const [ganancias, setGanancias] = useState([]);
+  const [inventario, setInventario] = useState({ productos: [], totales: {} });
   const [cargando, setCargando] = useState(true);
 
-  useEffect(() => {
-    cargarDatos();
-  }, [tabActual]);
+  useEffect(() => { cargarDatos(); }, [tabActual]);
 
   const cargarDatos = async () => {
     try {
@@ -37,6 +36,9 @@ export default function Informes() {
       } else if (tabActual === 'ganancias') {
         const res = await informesAPI.ganancias();
         setGanancias(res.data);
+      } else if (tabActual === 'inventario') {
+        const res = await informesAPI.inventario();
+        setInventario(res.data);
       }
     } catch (err) {
       console.error('Error:', err);
@@ -45,53 +47,38 @@ export default function Informes() {
     }
   };
 
+  const tabs = [
+    { id: 'resumen', label: '📊 Resumen' },
+    { id: 'vendidos', label: '🏆 Más Vendidos' },
+    { id: 'sin-venta', label: '📉 Sin Venta' },
+    { id: 'ingresos', label: '💰 Ingresos' },
+    { id: 'medios', label: '💳 Por Medio' },
+    { id: 'ganancias', label: '💵 Ganancias' },
+    { id: 'inventario', label: '📦 Inventario' },
+  ];
+
   return (
     <div className="contenedor">
       <h2>📊 Informes y Reportes</h2>
 
       <div className="tabs">
-        <button
-          className={`tab-btn ${tabActual === 'resumen' ? 'activo' : ''}`}
-          onClick={() => setTabActual('resumen')}
-        >
-          📊 Resumen
-        </button>
-        <button
-          className={`tab-btn ${tabActual === 'vendidos' ? 'activo' : ''}`}
-          onClick={() => setTabActual('vendidos')}
-        >
-          🏆 Más Vendidos
-        </button>
-        <button
-          className={`tab-btn ${tabActual === 'sin-venta' ? 'activo' : ''}`}
-          onClick={() => setTabActual('sin-venta')}
-        >
-          📉 Sin Venta
-        </button>
-        <button
-          className={`tab-btn ${tabActual === 'ingresos' ? 'activo' : ''}`}
-          onClick={() => setTabActual('ingresos')}
-        >
-          💰 Ingresos
-        </button>
-        <button
-          className={`tab-btn ${tabActual === 'medios' ? 'activo' : ''}`}
-          onClick={() => setTabActual('medios')}
-        >
-          💳 Por Medio
-        </button>
-        <button
-          className={`tab-btn ${tabActual === 'ganancias' ? 'activo' : ''}`}
-          onClick={() => setTabActual('ganancias')}
-        >
-          💵 Ganancias
-        </button>
+        {tabs.map(t => (
+          <button
+            key={t.id}
+            className={`tab-btn ${tabActual === t.id ? 'activo' : ''}`}
+            onClick={() => setTabActual(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
       {cargando ? (
-        <p>Cargando...</p>
+        <div className="cargando">Cargando datos...</div>
       ) : (
-        <>
+        <div className="tab-contenido">
+
+          {/* RESUMEN */}
           {tabActual === 'resumen' && resumen && (
             <div className="stats-grid">
               <div className="stat-card">
@@ -124,10 +111,12 @@ export default function Informes() {
             </div>
           )}
 
+          {/* MÁS VENDIDOS */}
           {tabActual === 'vendidos' && (
             <table className="tabla">
               <thead>
                 <tr>
+                  <th>#</th>
                   <th>Producto</th>
                   <th>Código</th>
                   <th>Cantidad</th>
@@ -137,14 +126,15 @@ export default function Informes() {
               </thead>
               <tbody>
                 {vendidos.length === 0 ? (
-                  <tr><td colSpan="5" className="vacio">Sin datos</td></tr>
+                  <tr><td colSpan="6" className="vacio">Sin datos</td></tr>
                 ) : (
                   vendidos.map((v, i) => (
                     <tr key={i}>
+                      <td><strong style={{ color: '#f5a623' }}>#{i + 1}</strong></td>
                       <td><strong>{v.nombre}</strong></td>
                       <td>{v.codigo_barras || '—'}</td>
                       <td>{v.cantidad_vendida}</td>
-                      <td><strong>${Number(v.total_vendido).toLocaleString('es-CO')}</strong></td>
+                      <td><strong style={{ color: '#2ecc71' }}>${Number(v.total_vendido).toLocaleString('es-CO')}</strong></td>
                       <td>{v.num_ventas}</td>
                     </tr>
                   ))
@@ -153,6 +143,7 @@ export default function Informes() {
             </table>
           )}
 
+          {/* SIN VENTA */}
           {tabActual === 'sin-venta' && (
             <table className="tabla">
               <thead>
@@ -166,7 +157,7 @@ export default function Informes() {
               </thead>
               <tbody>
                 {sinVenta.length === 0 ? (
-                  <tr><td colSpan="5" className="vacio">¡Todos tienen ventas!</td></tr>
+                  <tr><td colSpan="5" className="vacio">¡Todos los productos tienen ventas!</td></tr>
                 ) : (
                   sinVenta.map((p, i) => (
                     <tr key={i}>
@@ -182,6 +173,7 @@ export default function Informes() {
             </table>
           )}
 
+          {/* INGRESOS DIARIOS */}
           {tabActual === 'ingresos' && (
             <table className="tabla">
               <thead>
@@ -195,11 +187,11 @@ export default function Informes() {
                 {ingresos.length === 0 ? (
                   <tr><td colSpan="3" className="vacio">Sin datos</td></tr>
                 ) : (
-                  ingresos.map((i, idx) => (
+                  ingresos.map((item, idx) => (
                     <tr key={idx}>
-                      <td>{new Date(i.fecha).toLocaleDateString('es-CO')}</td>
-                      <td>{i.num_ventas}</td>
-                      <td><strong>${Number(i.total_ingresos).toLocaleString('es-CO')}</strong></td>
+                      <td>{new Date(item.fecha).toLocaleDateString('es-CO')}</td>
+                      <td>{item.num_ventas}</td>
+                      <td><strong style={{ color: '#2ecc71' }}>${Number(item.total_ingresos).toLocaleString('es-CO')}</strong></td>
                     </tr>
                   ))
                 )}
@@ -207,6 +199,7 @@ export default function Informes() {
             </table>
           )}
 
+          {/* POR MEDIO DE PAGO */}
           {tabActual === 'medios' && (
             <table className="tabla">
               <thead>
@@ -226,7 +219,7 @@ export default function Informes() {
                       <td><strong>{m.medio_pago}</strong></td>
                       <td>{m.banco || '—'}</td>
                       <td>{m.num_ventas}</td>
-                      <td><strong>${Number(m.total).toLocaleString('es-CO')}</strong></td>
+                      <td><strong style={{ color: '#2ecc71' }}>${Number(m.total).toLocaleString('es-CO')}</strong></td>
                     </tr>
                   ))
                 )}
@@ -234,6 +227,7 @@ export default function Informes() {
             </table>
           )}
 
+          {/* GANANCIAS */}
           {tabActual === 'ganancias' && (
             <table className="tabla">
               <thead>
@@ -256,15 +250,72 @@ export default function Informes() {
                       <td>{g.cantidad}</td>
                       <td>${Number(g.precio_costo_prom).toLocaleString('es-CO')}</td>
                       <td>${Number(g.precio_venta_prom).toLocaleString('es-CO')}</td>
-                      <td><strong style={{ color: '#28a745' }}>${Number(g.ganancia_bruta).toLocaleString('es-CO')}</strong></td>
-                      <td><strong>{g.margen_porcentaje}%</strong></td>
+                      <td><strong style={{ color: '#2ecc71' }}>${Number(g.ganancia_bruta).toLocaleString('es-CO')}</strong></td>
+                      <td>
+                        <span className={`badge ${g.margen_porcentaje >= 20 ? 'badge-ok' : 'badge-alerta'}`}>
+                          {g.margen_porcentaje}%
+                        </span>
+                      </td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
           )}
-        </>
+
+          {/* INVENTARIO */}
+          {tabActual === 'inventario' && (
+            <>
+              <div className="stats-grid" style={{ marginBottom: '20px' }}>
+                <div className="stat-card">
+                  <h3>Valor en Costo</h3>
+                  <p>${Number(inventario.totales.total_costo || 0).toLocaleString('es-CO')}</p>
+                </div>
+                <div className="stat-card positivo">
+                  <h3>Valor en Venta</h3>
+                  <p>${Number(inventario.totales.total_venta || 0).toLocaleString('es-CO')}</p>
+                </div>
+                <div className="stat-card positivo">
+                  <h3>Ganancia Potencial</h3>
+                  <p>${Number(inventario.totales.total_ganancia || 0).toLocaleString('es-CO')}</p>
+                </div>
+              </div>
+              <table className="tabla">
+                <thead>
+                  <tr>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Stock</th>
+                    <th>Precio Costo</th>
+                    <th>Precio Venta</th>
+                    <th>Valor Costo</th>
+                    <th>Valor Venta</th>
+                    <th>Ganancia Potencial</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {inventario.productos.length === 0 ? (
+                    <tr><td colSpan="8" className="vacio">Sin datos</td></tr>
+                  ) : (
+                    inventario.productos.map((p, i) => (
+                      <tr key={i}>
+                        <td><strong>{p.nombre}</strong></td>
+                        <td>{p.categoria}</td>
+                        <td>{p.stock}</td>
+                        <td>${Number(p.precio_costo).toLocaleString('es-CO')}</td>
+                        <td>${Number(p.precio_venta).toLocaleString('es-CO')}</td>
+                        <td>${Number(p.valor_costo).toLocaleString('es-CO')}</td>
+                        <td style={{ color: '#2ecc71' }}><strong>${Number(p.valor_venta).toLocaleString('es-CO')}</strong></td>
+                        <td style={{ color: '#f5a623' }}><strong>${Number(p.ganancia_potencial).toLocaleString('es-CO')}</strong></td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </>
+          )}
+
+        </div>
       )}
     </div>
   );
