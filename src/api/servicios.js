@@ -61,3 +61,11 @@ export const cajaAPI = {
   cerrar: (datos) => apiClient.post('/caja/cerrar', datos),
   historial: (usuario_id) => apiClient.get(`/caja/historial/${usuario_id}`)
 };
+
+// USUARIOS
+export const usuariosAPI = {
+  obtener: () => apiClient.get('/usuarios'),
+  crear: (datos) => apiClient.post('/usuarios', datos),
+  actualizar: (id, datos) => apiClient.put(`/usuarios/${id}`, datos),
+  cambiarEstado: (id, activo) => apiClient.patch(`/usuarios/${id}/estado`, { activo })
+};

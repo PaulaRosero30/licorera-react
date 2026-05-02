@@ -9,6 +9,7 @@ import Mesas from './componentes/Mesas';
 import Informes from './componentes/Informes';
 import logo from './logo-licores.jpeg';
 import { cajaAPI } from './api/servicios';
+import Usuarios from './componentes/Usuarios';
 import './App.css';
 
 function obtenerIniciales(nombre) {
@@ -119,13 +120,14 @@ function App() {
   const esAdmin = usuario.rol === 'admin';
 
   const menu = [
-    { id: 'ventas', label: '🛒 Ventas' },
-    { id: 'inventario', label: '📦 Inventario' },
-    { id: 'clientes', label: '👥 Clientes' },
-    { id: 'proveedores', label: '🚚 Proveedores' },
-    { id: 'mesas', label: '🪑 Mesas' },
-    { id: 'informes', label: '📊 Informes' },
-  ];
+  { id: 'ventas', label: '🛒 Ventas' },
+  { id: 'inventario', label: '📦 Inventario' },
+  { id: 'clientes', label: '👥 Clientes' },
+  { id: 'proveedores', label: '🚚 Proveedores' },
+  { id: 'mesas', label: '🪑 Mesas' },
+  { id: 'informes', label: '📊 Informes' },
+  ...(esAdmin ? [{ id: 'usuarios', label: '👤 Usuarios' }] : []),
+];
 
   return (
     <div className="app">
@@ -167,6 +169,7 @@ function App() {
         {modulo === 'proveedores' && <Proveedores esAdmin={esAdmin} />}
         {modulo === 'mesas' && <Mesas />}
         {modulo === 'informes' && <Informes esAdmin={esAdmin} />}
+        {modulo === 'usuarios' && esAdmin && <Usuarios />}
       </main>
     </div>
   );
