@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { productosAPI } from '../api/servicios';
 import './Inventario.css';
 
-export default function Inventario() {
+export default function Inventario({ esAdmin = true }) {
   const [productos, setProductos] = useState([]);
   const [filtrados, setFiltrados] = useState([]);
   const [buscador, setBuscador] = useState('');
@@ -93,10 +93,11 @@ export default function Inventario() {
 
   const stockBajoList = productos.filter(p => p.stock_bajo);
   const stats = {
-    total: productos.length,
-    valor: productos.reduce((acc, p) => acc + (p.precio_costo * p.stock), 0),
-    stockBajo: stockBajoList.length
-  };
+  total: productos.length,
+  unidades: productos.reduce((acc, p) => acc + Number(p.stock), 0),
+  valor: productos.reduce((acc, p) => acc + (p.precio_costo * p.stock), 0),
+  stockBajo: productos.filter(p => p.stock_bajo).length
+};
 
   if (cargando) return <div className="contenedor"><p>Cargando...</p></div>;
 
@@ -116,19 +117,23 @@ export default function Inventario() {
       )}
 
       <div className="stats-grid">
-        <div className="stat-card">
-          <h3>Total Productos</h3>
-          <p>{stats.total}</p>
-        </div>
-        <div className="stat-card">
-          <h3>Valor Inventario</h3>
-          <p>${stats.valor.toLocaleString('es-CO')}</p>
-        </div>
-        <div className="stat-card alerta">
-          <h3>⚠️ Stock Bajo</h3>
-          <p>{stats.stockBajo}</p>
-        </div>
-      </div>
+  <div className="stat-card">
+    <h3>Total Productos</h3>
+    <p>{stats.total}</p>
+  </div>
+  <div className="stat-card">
+    <h3>Total Unidades</h3>
+    <p>{stats.unidades.toLocaleString('es-CO')}</p>
+  </div>
+  <div className="stat-card">
+    <h3>Valor Inventario</h3>
+    <p>${stats.valor.toLocaleString('es-CO')}</p>
+  </div>
+  <div className="stat-card alerta">
+    <h3>⚠️ Stock Bajo</h3>
+    <p>{stats.stockBajo}</p>
+  </div>
+</div>
 
       <div className="barra-busqueda">
         <input type="text" placeholder="🔍 Buscar producto..." value={buscador} onChange={(e) => setBuscador(e.target.value)} />
@@ -142,7 +147,7 @@ export default function Inventario() {
           <option value="Whisky">Whisky</option>
           <option value="Otro">Otro</option>
         </select>
-        <button className="btn btn-gold" onClick={abrirModal}>+ Agregar</button>
+        {esAdmin && <button className="btn btn-gold" onClick={abrirModal}>+ Agregar</button>}
       </div>
 
       {error && <div className="error">{error}</div>}
@@ -178,8 +183,9 @@ export default function Inventario() {
                   </span>
                 </td>
                 <td className="acciones">
-                  <button className="btn btn-sm" onClick={() => editar(p)}>Editar</button>
-                  <button className="btn btn-sm btn-rojo" onClick={() => inactivar(p)}>Inactivar</button>
+                  {esAdmin && <button className="btn btn-sm" onClick={() => editar(p)}>Editar</button>}
+                  {esAdmin && <button className="btn btn-sm btn-rojo" onClick={() => inactivar(p)}>Inactivar</button>}
+                  {!esAdmin && <span style={{ color: '#888', fontSize: '0.8rem' }}>Solo lectura</span>}
                 </td>
               </tr>
             ))

@@ -55,20 +55,16 @@ function App() {
 
   if (!usuario) return <Login onLogin={handleLogin} />;
 
-  const menuAdmin = [
-  { id: 'ventas', label: '🛒 Ventas' },
-  { id: 'inventario', label: '📦 Inventario' },
-  { id: 'clientes', label: '👥 Clientes' },
-  { id: 'proveedores', label: '🚚 Proveedores' },
-  { id: 'mesas', label: '🪑 Mesas' },
-  { id: 'informes', label: '📊 Informes' },
-];
+  const esAdmin = usuario.rol === 'admin';
 
-  const menuEmpleado = [
+  const menu = [
     { id: 'ventas', label: '🛒 Ventas' },
+    { id: 'inventario', label: '📦 Inventario' },
+    { id: 'clientes', label: '👥 Clientes' },
+    { id: 'proveedores', label: '🚚 Proveedores' },
+    { id: 'mesas', label: '🪑 Mesas' },
+    { id: 'informes', label: '📊 Informes' },
   ];
-
-  const menu = usuario.rol === 'admin' ? menuAdmin : menuEmpleado;
 
   return (
     <div className="app">
@@ -107,11 +103,11 @@ function App() {
 
       <main>
         {modulo === 'ventas' && <Ventas />}
-        {modulo === 'inventario' && <Inventario />}
-        {modulo === 'clientes' && <Clientes />}
-        {modulo === 'proveedores' && <Proveedores />}
+        {modulo === 'inventario' && <Inventario esAdmin={esAdmin} />}
+        {modulo === 'clientes' && <Clientes esAdmin={esAdmin} />}
+        {modulo === 'proveedores' && <Proveedores esAdmin={esAdmin} />}
         {modulo === 'mesas' && <Mesas />}
-        {modulo === 'informes' && <Informes />}
+        {modulo === 'informes' && <Informes esAdmin={esAdmin} />}
       </main>
     </div>
   );

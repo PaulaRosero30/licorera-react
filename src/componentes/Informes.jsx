@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { informesAPI } from '../api/servicios';
 import './Informes.css';
 
-export default function Informes() {
+export default function Informes({ esAdmin = true }) {
   const [tabActual, setTabActual] = useState('resumen');
   const [resumen, setResumen] = useState(null);
   const [vendidos, setVendidos] = useState([]);
@@ -11,9 +11,11 @@ export default function Informes() {
   const [medios, setMedios] = useState([]);
   const [ganancias, setGanancias] = useState([]);
   const [inventario, setInventario] = useState({ productos: [], totales: {} });
+  const [ventasPeriodo, setVentasPeriodo] = useState([]);
+  const [periodoSeleccionado, setPeriodoSeleccionado] = useState('dia');
   const [cargando, setCargando] = useState(true);
 
-  useEffect(() => { cargarDatos(); }, [tabActual]);
+  useEffect(() => { cargarDatos(); }, [tabActual, periodoSeleccionado]);
 
   const cargarDatos = async () => {
     try {
@@ -39,6 +41,9 @@ export default function Informes() {
       } else if (tabActual === 'inventario') {
         const res = await informesAPI.inventario();
         setInventario(res.data);
+      } else if (tabActual === 'periodos') {
+        const res = await informesAPI.ventasPeriodo(periodoSeleccionado);
+        setVentasPeriodo(res.data);
       }
     } catch (err) {
       console.error('Error:', err);
@@ -55,6 +60,7 @@ export default function Informes() {
     { id: 'medios', label: '💳 Por Medio' },
     { id: 'ganancias', label: '💵 Ganancias' },
     { id: 'inventario', label: '📦 Inventario' },
+    { id: 'periodos', label: '📅 Por Período' },
   ];
 
   return (
@@ -268,6 +274,10 @@ export default function Informes() {
             <>
               <div className="stats-grid" style={{ marginBottom: '20px' }}>
                 <div className="stat-card">
+                  <h3>Total Unidades</h3>
+                  <p>{Number(inventario.totales.total_unidades || 0).toLocaleString('es-CO')}</p>
+                </div>
+                <div className="stat-card">
                   <h3>Valor en Costo</h3>
                   <p>${Number(inventario.totales.total_costo || 0).toLocaleString('es-CO')}</p>
                 </div>
@@ -309,6 +319,70 @@ export default function Informes() {
                         <td style={{ color: '#f5a623' }}><strong>${Number(p.ganancia_potencial).toLocaleString('es-CO')}</strong></td>
                       </tr>
                     ))
+                  )}
+                </tbody>
+              </table>
+            </>
+          )}
+
+          {/* POR PERÍODO */}
+          {tabActual === 'periodos' && (
+            <>
+              <div className="periodo-selector">
+                <button
+                  className={`periodo-btn ${periodoSeleccionado === 'dia' ? 'activo' : ''}`}
+                  onClick={() => setPeriodoSeleccionado('dia')}
+                >
+                  📅 Por Día
+                </button>
+                <button
+                  className={`periodo-btn ${periodoSeleccionado === 'mes' ? 'activo' : ''}`}
+                  onClick={() => setPeriodoSeleccionado('mes')}
+                >
+                  📆 Por Mes
+                </button>
+                <button
+                  className={`periodo-btn ${periodoSeleccionado === 'año' ? 'activo' : ''}`}
+                  onClick={() => setPeriodoSeleccionado('año')}
+                >
+                  🗓️ Por Año
+                </button>
+              </div>
+
+              <table className="tabla">
+                <thead>
+                  <tr>
+                    <th>Período</th>
+                    <th>Ventas</th>
+                    <th>Ingresos</th>
+                    <th>Costo</th>
+                    <th>Ganancia Neta</th>
+                    <th>Margen %</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ventasPeriodo.length === 0 ? (
+                    <tr><td colSpan="6" className="vacio">Sin datos</td></tr>
+                  ) : (
+                    ventasPeriodo.map((v, i) => {
+                      const margen = v.ingresos_totales > 0
+                        ? ((v.ganancia_neta / v.ingresos_totales) * 100).toFixed(1)
+                        : 0;
+                      return (
+                        <tr key={i}>
+                          <td><strong>{v.periodo}</strong></td>
+                          <td>{v.num_ventas}</td>
+                          <td>${Number(v.ingresos_totales).toLocaleString('es-CO')}</td>
+                          <td>${Number(v.costo_total).toLocaleString('es-CO')}</td>
+                          <td><strong style={{ color: '#2ecc71' }}>${Number(v.ganancia_neta).toLocaleString('es-CO')}</strong></td>
+                          <td>
+                            <span className={`badge ${margen >= 20 ? 'badge-ok' : 'badge-alerta'}`}>
+                              {margen}%
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>

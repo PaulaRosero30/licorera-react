@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { proveedoresAPI } from '../api/servicios';
 import './Proveedores.css';
 
-export default function Proveedores() {
+export default function Proveedores({ esAdmin = true }) {
   const [proveedores, setProveedores] = useState([]);
   const [filtrados, setFiltrados] = useState([]);
   const [buscador, setBuscador] = useState('');
@@ -116,7 +116,7 @@ export default function Proveedores() {
           value={buscador}
           onChange={(e) => setBuscador(e.target.value)}
         />
-        <button className="btn btn-gold" onClick={abrirModal}>+ Agregar Proveedor</button>
+        {esAdmin && <button className="btn btn-gold" onClick={abrirModal}>+ Agregar Proveedor</button>}
       </div>
 
       {error && <div className="error">{error}</div>}
@@ -148,8 +148,9 @@ export default function Proveedores() {
                   <span className="badge badge-ok">{p.total_pedidos || 0}</span>
                 </td>
                 <td className="acciones">
-                  <button className="btn btn-sm" onClick={() => editar(p)}>Editar</button>
-                  <button className="btn btn-sm btn-rojo" onClick={() => abrirConfirm(p.id)}>Inactivar</button>
+                  {esAdmin && <button className="btn btn-sm" onClick={() => editar(p)}>Editar</button>}
+                  {esAdmin && <button className="btn btn-sm btn-rojo" onClick={() => abrirConfirm(p.id)}>Inactivar</button>}
+                  {!esAdmin && <span style={{ color: '#888', fontSize: '0.8rem' }}>Solo lectura</span>}
                 </td>
               </tr>
             ))

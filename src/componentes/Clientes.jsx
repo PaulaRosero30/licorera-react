@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { clientesAPI } from '../api/servicios';
 import './Clientes.css';
 
-export default function Clientes() {
+export default function Clientes({ esAdmin = true}) {
   const [clientes, setClientes] = useState([]);
   const [filtrados, setFiltrados] = useState([]);
   const [buscador, setBuscador] = useState('');
@@ -156,7 +156,7 @@ export default function Clientes() {
           value={buscador}
           onChange={(e) => setBuscador(e.target.value)}
         />
-        <button className="btn btn-gold" onClick={abrirModal}>+ Agregar Cliente</button>
+        {esAdmin && <button className="btn btn-gold" onClick={abrirModal}>+ Agregar Cliente</button>}
       </div>
 
       {error && <div className="error">{error}</div>}
@@ -197,7 +197,7 @@ export default function Clientes() {
                 </td>
                 <td className="acciones">
                   <button className="btn btn-sm" onClick={() => verDetalles(c)}>Ver deudas</button>
-                  <button className="btn btn-sm" onClick={() => editar(c)}>Editar</button>
+                  {esAdmin && <button className="btn btn-sm" onClick={() => editar(c)}>Editar</button>}
                 </td>
               </tr>
             ))

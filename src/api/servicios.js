@@ -50,5 +50,6 @@ export const informesAPI = {
   ingresos: () => apiClient.get('/informes/ingresos'),
   ingresosPorMedio: () => apiClient.get('/informes/ingresos-por-medio'),
   ganancias: () => apiClient.get('/informes/ganancias'),
-  inventario: () => apiClient.get('/informes/inventario')
+  inventario: () => apiClient.get('/informes/inventario'),
+  ventasPeriodo: (periodo) => apiClient.get(`/informes/ventas-periodo?periodo=${periodo}`)
 };
