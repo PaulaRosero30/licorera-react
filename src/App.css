@@ -126,3 +126,14 @@ main {
   color: #1a1a1a;
   font-weight: bold;
 }
+
+.btn-caja-cerrar {
+  background-color: #2a2a2a;
+  border: 1px solid #f5a623;
+  color: #f5a623;
+}
+
+.btn-caja-cerrar:hover {
+  background-color: #f5a623;
+  color: #1a1a1a;
+}

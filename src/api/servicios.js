@@ -53,3 +53,11 @@ export const informesAPI = {
   inventario: () => apiClient.get('/informes/inventario'),
   ventasPeriodo: (periodo) => apiClient.get(`/informes/ventas-periodo?periodo=${periodo}`)
 };
+
+// CAJA
+export const cajaAPI = {
+  estado: (usuario_id) => apiClient.get(`/caja/estado/${usuario_id}`),
+  abrir: (datos) => apiClient.post('/caja/abrir', datos),
+  cerrar: (datos) => apiClient.post('/caja/cerrar', datos),
+  historial: (usuario_id) => apiClient.get(`/caja/historial/${usuario_id}`)
+};
