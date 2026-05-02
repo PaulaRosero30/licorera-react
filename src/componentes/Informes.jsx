@@ -8,8 +8,9 @@ export default function Informes({ esAdmin = true }) {
   const [vendidos, setVendidos] = useState([]);
   const [sinVenta, setSinVenta] = useState([]);
   const [ingresos, setIngresos] = useState([]);
-  const [medios, setMedios] = useState([]);
-  const [ganancias, setGanancias] = useState([]);
+  const [medios, setMedios] = useState({ detalle: [], resumen: { efectivo: 0, transferencia: 0, tarjeta: 0, total: 0 } });
+  const [fechaDesde, setFechaDesde] = useState('');
+  const [fechaHasta, setFechaHasta] = useState(''); const [ganancias, setGanancias] = useState([]);
   const [inventario, setInventario] = useState({ productos: [], totales: {} });
   const [ventasPeriodo, setVentasPeriodo] = useState([]);
   const [periodoSeleccionado, setPeriodoSeleccionado] = useState('dia');
@@ -33,7 +34,7 @@ export default function Informes({ esAdmin = true }) {
         const res = await informesAPI.ingresos();
         setIngresos(res.data);
       } else if (tabActual === 'medios') {
-        const res = await informesAPI.ingresosPorMedio();
+        const res = await informesAPI.ingresosPorMedio(fechaDesde, fechaHasta);
         setMedios(res.data);
       } else if (tabActual === 'ganancias') {
         const res = await informesAPI.ganancias();
@@ -203,35 +204,77 @@ export default function Informes({ esAdmin = true }) {
                 )}
               </tbody>
             </table>
-          )}
+            )}
+            
+            {/* POR MEDIO DE PAGO */}
+{tabActual === 'medios' && (
+  <>
+    <div className="filtro-fecha">
+      <div className="campo-fecha">
+        <label>Desde</label>
+        <input
+          type="date"
+          value={fechaDesde}
+          onChange={(e) => setFechaDesde(e.target.value)}
+        />
+      </div>
+      <div className="campo-fecha">
+        <label>Hasta</label>
+        <input
+          type="date"
+          value={fechaHasta}
+          onChange={(e) => setFechaHasta(e.target.value)}
+        />
+      </div>
+      <button className="btn btn-gold" onClick={cargarDatos}>Filtrar</button>
+      <button className="btn btn-sm" onClick={() => { setFechaDesde(''); setFechaHasta(''); }}>Limpiar</button>
+    </div>
 
-          {/* POR MEDIO DE PAGO */}
-          {tabActual === 'medios' && (
-            <table className="tabla">
-              <thead>
-                <tr>
-                  <th>Medio Pago</th>
-                  <th>Banco</th>
-                  <th>Ventas</th>
-                  <th>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {medios.length === 0 ? (
-                  <tr><td colSpan="4" className="vacio">Sin datos</td></tr>
-                ) : (
-                  medios.map((m, i) => (
-                    <tr key={i}>
-                      <td><strong>{m.medio_pago}</strong></td>
-                      <td>{m.banco || '—'}</td>
-                      <td>{m.num_ventas}</td>
-                      <td><strong style={{ color: '#2ecc71' }}>${Number(m.total).toLocaleString('es-CO')}</strong></td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          )}
+    <div className="stats-grid" style={{ marginBottom: '20px' }}>
+      <div className="stat-card">
+        <h3>💵 Efectivo</h3>
+        <p>${Number(medios.resumen.efectivo).toLocaleString('es-CO')}</p>
+      </div>
+      <div className="stat-card">
+        <h3>📱 Transferencia</h3>
+        <p>${Number(medios.resumen.transferencia).toLocaleString('es-CO')}</p>
+      </div>
+      <div className="stat-card">
+        <h3>💳 Tarjeta</h3>
+        <p>${Number(medios.resumen.tarjeta).toLocaleString('es-CO')}</p>
+      </div>
+      <div className="stat-card positivo">
+        <h3>Total General</h3>
+        <p>${Number(medios.resumen.total).toLocaleString('es-CO')}</p>
+      </div>
+    </div>
+
+    <table className="tabla">
+      <thead>
+        <tr>
+          <th>Medio Pago</th>
+          <th>Banco</th>
+          <th>Ventas</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {medios.detalle.length === 0 ? (
+          <tr><td colSpan="4" className="vacio">Sin datos</td></tr>
+        ) : (
+          medios.detalle.map((m, i) => (
+            <tr key={i}>
+              <td><strong>{m.medio_pago}</strong></td>
+              <td>{m.banco || '—'}</td>
+              <td>{m.num_ventas}</td>
+              <td><strong style={{ color: '#2ecc71' }}>${Number(m.total).toLocaleString('es-CO')}</strong></td>
+            </tr>
+          ))
+        )}
+      </tbody>
+    </table>
+  </>
+)}
 
           {/* GANANCIAS */}
           {tabActual === 'ganancias' && (

@@ -48,7 +48,7 @@ export const informesAPI = {
   productosMasVendidos: () => apiClient.get('/informes/productos-vendidos'),
   productosSinVenta: () => apiClient.get('/informes/productos-sin-venta'),
   ingresos: () => apiClient.get('/informes/ingresos'),
-  ingresosPorMedio: () => apiClient.get('/informes/ingresos-por-medio'),
+  ingresosPorMedio: (desde, hasta) => apiClient.get(`/informes/ingresos-por-medio${desde && hasta ? `?desde=${desde}&hasta=${hasta}` : ''}`),
   ganancias: () => apiClient.get('/informes/ganancias'),
   inventario: () => apiClient.get('/informes/inventario'),
   ventasPeriodo: (periodo) => apiClient.get(`/informes/ventas-periodo?periodo=${periodo}`)
