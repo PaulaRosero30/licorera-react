@@ -357,3 +357,69 @@
   color: #f5a623;
   font-size: 1.3rem;
 }
+
+.select-tipo {
+  padding: 10px 14px;
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.95rem;
+}
+
+.pago-linea {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.pago-linea select {
+  padding: 8px 10px;
+  background-color: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.85rem;
+}
+
+.pago-linea input {
+  width: 120px;
+  padding: 8px 10px;
+  background-color: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.85rem;
+}
+
+.saldo-resumen {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.saldo-ok {
+  background-color: #1a3a1a;
+  color: #2ecc71;
+}
+
+.saldo-pendiente {
+  background-color: #3a1a00;
+  color: #f5a623;
+}
+
+.saldo-sobrante {
+  background-color: #1a2a3a;
+  color: #3498db;
+}
+
+.btn-verde {
+  background-color: #27ae60;
+  color: white;
+}

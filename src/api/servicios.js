@@ -51,7 +51,9 @@ export const informesAPI = {
   ingresosPorMedio: (desde, hasta) => apiClient.get(`/informes/ingresos-por-medio${desde && hasta ? `?desde=${desde}&hasta=${hasta}` : ''}`),
   ganancias: () => apiClient.get('/informes/ganancias'),
   inventario: () => apiClient.get('/informes/inventario'),
-  ventasPeriodo: (periodo) => apiClient.get(`/informes/ventas-periodo?periodo=${periodo}`)
+  ventasPeriodo: (periodo) => apiClient.get(`/informes/ventas-periodo?periodo=${periodo}`),
+  movimientosCaja: (desde, hasta) => apiClient.get(`/informes/movimientos-caja${desde && hasta ? `?desde=${desde}&hasta=${hasta}` : ''}`)
+
 };
 
 // CAJA

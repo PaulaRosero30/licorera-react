@@ -172,9 +172,6 @@ export default function Caja({ usuario, modo, cajaInfoInicial, onCajaAbierta, on
                       </div>
             
                       <div className="caja-botones">
-                          <button className="btn-caja btn-gold" onClick={onCajaCerrada}>
-                              🔓 Abrir Nueva Caja
-                          </button>
                           <button className="btn-caja btn-gris" onClick={onCerrarSesion}>
                               🚪 Cerrar Sesión
                           </button>

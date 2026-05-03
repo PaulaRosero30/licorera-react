@@ -39,17 +39,25 @@ function App() {
   }, []);
 
   const verificarCajaAlIngreso = async (u) => {
-    try {
-      const res = await cajaAPI.estado(u.id);
-      if (res.data.abierta) {
-        setEtapa('sistema');
-      } else {
-        setEtapa('caja');
-      }
-    } catch {
+  try {
+    const res = await cajaAPI.estado(u.id);
+    if (res.data.abierta) {
+      setEtapa('sistema');
+    } else {
       setEtapa('caja');
     }
-  };
+  } catch (err) {
+    if (err.response?.status === 401 || err.response?.status === 403) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('usuario');
+      localStorage.removeItem('fotoPerfil');
+      setUsuario(null);
+      setEtapa('login');
+    } else {
+      setEtapa('caja');
+    }
+  }
+};
 
   const handleLogin = (usuarioData) => {
     setUsuario(usuarioData);
@@ -93,9 +101,9 @@ function App() {
   };
 
   const handleCajaCerrada = () => {
-    setCajaInfo(null);
-    setEtapa('caja');
-  };
+  setCajaInfo(null);
+  setEtapa('sistema');
+};
 
   if (etapa === 'login') return <Login onLogin={handleLogin} />;
 

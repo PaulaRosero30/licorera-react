@@ -10,7 +10,8 @@ export default function Mesas() {
   const [personaActual, setPersonaActual] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarCerrar, setMostrarCerrar] = useState(false);
-  const [nuevaMesa, setNuevaMesa] = useState('');
+  const [nuevaCuenta, setNuevaCuenta] = useState('');
+  const [tipoCuenta, setTipoCuenta] = useState('mesa');
   const [cargando, setCargando] = useState(true);
   const [pagos, setPagos] = useState({});
 
@@ -36,11 +37,11 @@ export default function Mesas() {
     }
   };
 
-  const abrirMesa = async () => {
-    if (!nuevaMesa.trim()) { alert('Escribe el nombre de la mesa'); return; }
+  const abrirCuenta = async () => {
+    if (!nuevaCuenta.trim()) { alert('Escribe el nombre de la cuenta'); return; }
     try {
-      await mesasAPI.crear({ numero: nuevaMesa });
-      setNuevaMesa('');
+      await mesasAPI.crear({ numero: nuevaCuenta, tipo: tipoCuenta });
+      setNuevaCuenta('');
       cargarDatos();
     } catch (err) {
       alert('Error: ' + err.message);
@@ -54,6 +55,7 @@ export default function Mesas() {
       setDetallesMesa(res.data);
       const personas = [...new Set(res.data.map(d => d.persona))];
       if (personas.length > 0) setPersonaActual(personas[0]);
+      else setPersonaActual(null);
     } catch (err) {
       alert('Error: ' + err.message);
     }
@@ -94,13 +96,58 @@ export default function Mesas() {
     const personas = [...new Set(detallesMesa.map(d => d.persona))];
     const pagosIniciales = {};
     personas.forEach(p => {
-      pagosIniciales[p] = { persona: p, medio_pago: 'efectivo', banco: '' };
+      const totalP = detallesMesa
+        .filter(d => d.persona === p)
+        .reduce((acc, i) => acc + (i.cantidad * Number(i.precio_unitario)), 0);
+      pagosIniciales[p] = {
+        persona: p,
+        pagos: [{ medio_pago: 'efectivo', banco: '', monto: totalP }]
+      };
     });
     setPagos(pagosIniciales);
     setMostrarCerrar(true);
   };
 
+  const agregarPago = (persona) => {
+    setPagos({
+      ...pagos,
+      [persona]: {
+        ...pagos[persona],
+        pagos: [...pagos[persona].pagos, { medio_pago: 'efectivo', banco: '', monto: 0 }]
+      }
+    });
+  };
+
+  const quitarPago = (persona, idx) => {
+    const nuevos = pagos[persona].pagos.filter((_, i) => i !== idx);
+    setPagos({ ...pagos, [persona]: { ...pagos[persona], pagos: nuevos } });
+  };
+
+  const actualizarPago = (persona, idx, campo, valor) => {
+    const nuevos = [...pagos[persona].pagos];
+    nuevos[idx] = { ...nuevos[idx], [campo]: valor };
+    setPagos({ ...pagos, [persona]: { ...pagos[persona], pagos: nuevos } });
+  };
+
+  const calcularTotalPagado = (persona) => {
+    return (pagos[persona]?.pagos || []).reduce((acc, p) => acc + Number(p.monto || 0), 0);
+  };
+
+  const calcularTotalPersona = (persona) => {
+    return detallesMesa
+      .filter(d => d.persona === persona)
+      .reduce((acc, i) => acc + (i.cantidad * Number(i.precio_unitario)), 0);
+  };
+
   const cerrarMesa = async () => {
+    const personas = [...new Set(detallesMesa.map(d => d.persona))];
+    for (const persona of personas) {
+      const total = calcularTotalPersona(persona);
+      const pagado = calcularTotalPagado(persona);
+      if (pagado < total) {
+        if (!window.confirm(`${persona} debe $${total.toLocaleString('es-CO')} pero solo ha pagado $${pagado.toLocaleString('es-CO')}. ¿Cerrar igual como pendiente?`)) return;
+      }
+    }
     try {
       await mesasAPI.cerrar(mesaActual.id, { pagos: Object.values(pagos) });
       setMesaActual(null);
@@ -123,25 +170,33 @@ export default function Mesas() {
   if (!mesaActual) {
     return (
       <div className="contenedor">
-        <h2>🪑 Mesas</h2>
+        <h2>🪑 Mesas y Cuentas</h2>
         <div className="barra-nueva-mesa">
+          <select
+            value={tipoCuenta}
+            onChange={(e) => setTipoCuenta(e.target.value)}
+            className="select-tipo"
+          >
+            <option value="mesa">🪑 Mesa</option>
+            <option value="cliente">👤 Cliente Frecuente</option>
+          </select>
           <input
             type="text"
-            value={nuevaMesa}
-            onChange={(e) => setNuevaMesa(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && abrirMesa()}
-            placeholder="Nombre de la mesa (Ej: Mesa 1, VIP)..."
+            value={nuevaCuenta}
+            onChange={(e) => setNuevaCuenta(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && abrirCuenta()}
+            placeholder={tipoCuenta === 'mesa' ? 'Ej: Mesa 1, VIP...' : 'Ej: Adriana, Abraham...'}
           />
-          <button className="btn btn-gold" onClick={abrirMesa}>+ Abrir Mesa</button>
+          <button className="btn btn-gold" onClick={abrirCuenta}>+ Abrir Cuenta</button>
         </div>
 
         {mesas.length === 0 ? (
-          <p className="vacio">No hay mesas abiertas</p>
+          <p className="vacio">No hay cuentas abiertas</p>
         ) : (
           <div className="mesas-grid">
             {mesas.map(m => (
               <div key={m.id} className="mesa-card" onClick={() => seleccionarMesa(m)}>
-                <div className="mesa-icono">🪑</div>
+                <div className="mesa-icono">{m.numero.match(/^[A-Za-záéíóúÁÉÍÓÚ]/) ? '👤' : '🪑'}</div>
                 <div className="mesa-numero">{m.numero}</div>
                 <div className="mesa-info">{m.productos || 0} productos</div>
                 <div className="mesa-total">${Number(m.total || 0).toLocaleString('es-CO')}</div>
@@ -161,13 +216,13 @@ export default function Mesas() {
         <h2>🪑 {mesaActual.numero}</h2>
         <div className="detalle-acciones">
           <button className="btn btn-gold" onClick={() => setMostrarModal(true)}>+ Agregar Producto</button>
-          <button className="btn btn-verde" onClick={abrirCerrar}>✅ Cerrar Mesa</button>
+          <button className="btn btn-verde" onClick={abrirCerrar}>✅ Cerrar Cuenta</button>
         </div>
       </div>
 
       <div className="mesa-resumen">
         <div className="resumen-dato">
-          <span>Total mesa</span>
+          <span>Total cuenta</span>
           <strong>${totalMesa.toLocaleString('es-CO')}</strong>
         </div>
         <div className="resumen-dato">
@@ -187,7 +242,7 @@ export default function Mesas() {
             className={`persona-tab ${personaActual === p ? 'activo' : ''}`}
             onClick={() => setPersonaActual(p)}
           >
-            👤 {p}
+            👤 {p} — ${calcularTotalPersona(p).toLocaleString('es-CO')}
           </button>
         ))}
       </div>
@@ -265,8 +320,7 @@ export default function Mesas() {
             <div className="campo">
               <label>Cantidad</label>
               <input
-                type="number"
-                min="1"
+                type="number" min="1"
                 value={formProducto.cantidad}
                 onChange={(e) => setFormProducto({ ...formProducto, cantidad: e.target.value })}
               />
@@ -279,60 +333,77 @@ export default function Mesas() {
         </div>
       )}
 
-      {/* MODAL CERRAR MESA */}
+      {/* MODAL CERRAR CUENTA */}
       {mostrarCerrar && (
         <div className="modal-overlay">
           <div className="modal modal-grande">
-            <h2>✅ Cerrar Mesa — {mesaActual.numero}</h2>
-            <p style={{ color: '#aaa', marginBottom: '16px' }}>
-              Selecciona el medio de pago por persona:
-            </p>
+            <h2>✅ Cerrar Cuenta — {mesaActual.numero}</h2>
+            <p style={{ color: '#aaa', marginBottom: '16px' }}>Registra los pagos por persona:</p>
+
             {personasEnMesa.map(persona => {
-              const totalP = detallesMesa
-                .filter(d => d.persona === persona)
-                .reduce((acc, i) => acc + (i.cantidad * Number(i.precio_unitario)), 0);
+              const totalP = calcularTotalPersona(persona);
+              const pagado = calcularTotalPagado(persona);
+              const pendiente = totalP - pagado;
+
               return (
                 <div key={persona} className="pago-persona">
                   <div className="pago-header">
                     <span>👤 <strong>{persona}</strong></span>
-                    <span style={{ color: '#f5a623' }}>${totalP.toLocaleString('es-CO')}</span>
+                    <span style={{ color: '#f5a623' }}>Total: ${totalP.toLocaleString('es-CO')}</span>
                   </div>
-                  <div className="campo">
-                    <label>Medio de pago</label>
-                    <select
-                      value={pagos[persona]?.medio_pago || 'efectivo'}
-                      onChange={(e) => setPagos({
-                        ...pagos,
-                        [persona]: { ...pagos[persona], medio_pago: e.target.value }
-                      })}
-                    >
-                      <option value="efectivo">💵 Efectivo</option>
-                      <option value="transferencia">📱 Transferencia</option>
-                      <option value="tarjeta">💳 Tarjeta</option>
-                    </select>
-                  </div>
-                  {pagos[persona]?.medio_pago === 'transferencia' && (
-                    <div className="campo">
-                      <label>Banco</label>
+
+                  {(pagos[persona]?.pagos || []).map((pago, idx) => (
+                    <div key={idx} className="pago-linea">
                       <select
-                        value={pagos[persona]?.banco || ''}
-                        onChange={(e) => setPagos({
-                          ...pagos,
-                          [persona]: { ...pagos[persona], banco: e.target.value }
-                        })}
+                        value={pago.medio_pago}
+                        onChange={(e) => actualizarPago(persona, idx, 'medio_pago', e.target.value)}
                       >
-                        <option value="">Selecciona...</option>
-                        <option value="Nequi">Nequi</option>
-                        <option value="Bancolombia">Bancolombia</option>
-                        <option value="Davivienda">Davivienda</option>
-                        <option value="Daviplata">Daviplata</option>
-                        <option value="Otro">Otro</option>
+                        <option value="efectivo">💵 Efectivo</option>
+                        <option value="transferencia">📱 Transferencia</option>
+                        <option value="tarjeta">💳 Tarjeta</option>
                       </select>
+                      {pago.medio_pago === 'transferencia' && (
+                        <select
+                          value={pago.banco}
+                          onChange={(e) => actualizarPago(persona, idx, 'banco', e.target.value)}
+                        >
+                          <option value="">Banco...</option>
+                          <option value="Nequi">Nequi</option>
+                          <option value="Bancolombia">Bancolombia</option>
+                          <option value="Davivienda">Davivienda</option>
+                          <option value="Daviplata">Daviplata</option>
+                          <option value="Otro">Otro</option>
+                        </select>
+                      )}
+                      <input
+                        type="number"
+                        value={pago.monto}
+                        onChange={(e) => actualizarPago(persona, idx, 'monto', e.target.value)}
+                        placeholder="Monto"
+                        min="0"
+                      />
+                      {idx > 0 && (
+                        <button className="btn btn-sm btn-rojo" onClick={() => quitarPago(persona, idx)}>✕</button>
+                      )}
                     </div>
-                  )}
+                  ))}
+
+                  <button className="btn btn-sm" style={{ marginTop: '8px' }} onClick={() => agregarPago(persona)}>
+                    + Agregar otro medio de pago
+                  </button>
+
+                  <div className={`saldo-resumen ${pendiente > 0 ? 'saldo-pendiente' : pendiente < 0 ? 'saldo-sobrante' : 'saldo-ok'}`}>
+                    <span>Pagado: ${pagado.toLocaleString('es-CO')}</span>
+                    <span>
+                      {pendiente > 0 ? `⚠️ Falta: $${pendiente.toLocaleString('es-CO')}` :
+                       pendiente < 0 ? `📈 Sobra: $${Math.abs(pendiente).toLocaleString('es-CO')}` :
+                       '✅ Saldado'}
+                    </span>
+                  </div>
                 </div>
               );
             })}
+
             <div className="total-cierre">
               <span>Total a cobrar:</span>
               <strong>${totalMesa.toLocaleString('es-CO')}</strong>
