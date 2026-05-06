@@ -132,7 +132,6 @@ function App() {
   { id: 'inventario', label: '📦 Inventario' },
   { id: 'clientes', label: '👥 Clientes' },
   { id: 'proveedores', label: '🚚 Proveedores' },
-  { id: 'mesas', label: '🪑 Mesas' },
   { id: 'informes', label: '📊 Informes' },
   ...(esAdmin ? [{ id: 'usuarios', label: '👤 Usuarios' }] : []),
 ];

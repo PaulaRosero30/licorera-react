@@ -19,8 +19,9 @@ export const proveedoresAPI = {
 // VENTAS
 export const ventasAPI = {
   obtener: () => apiClient.get('/ventas'),
-  crear: (data) => apiClient.post('/ventas', data),
-  detalle: (id) => apiClient.get(`/ventas/${id}/detalle`)
+  crear: (datos) => apiClient.post('/ventas', datos),
+  detalle: (id) => apiClient.get(`/ventas/${id}/detalle`),
+  anular: (id, motivo) => apiClient.post(`/ventas/${id}/anular`, { motivo })
 };
 
 // CLIENTES
